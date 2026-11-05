@@ -1,3 +1,18 @@
-{"name":"booster-ledger","version":"0.1.0","type":"module","private":true,
-"scripts":{"start":"node server.js","test":"vitest run","e2e":"playwright test","refresh":"node scripts-refresh.mjs"},
-"devDependencies":{"vitest":"^2.1.0","@playwright/test":"1.58.2"}}
+{
+ "name": "booster-ledger",
+ "version": "0.2.0",
+ "type": "module",
+ "private": true,
+ "scripts": {
+  "start": "node server.js",
+  "test": "vitest run",
+  "e2e": "playwright test",
+  "refresh": "node scripts-refresh.mjs",
+  "mutation": "node scripts-mutation.mjs"
+ },
+ "devDependencies": {
+  "@axe-core/playwright": "^4.14.0",
+  "@playwright/test": "1.58.2",
+  "vitest": "^2.1.0"
+ }
+}
