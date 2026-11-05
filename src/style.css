@@ -56,3 +56,5 @@ body.tv>*:not(#tv){display:none!important}html.tv,body.tv{padding:0;margin:0;ove
 
 #padsvg,#recoveredsvg{width:100%;max-width:1000px;background:#0f1520;border-radius:10px;display:block}
 #padcadence,#recovered{margin-top:22px}
+#firsts div{background:#141b27;border-radius:8px;padding:8px 10px;margin:6px 0;font-size:13px}
+#firsts b{color:var(--acc)}

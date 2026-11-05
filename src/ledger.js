@@ -320,3 +320,19 @@ export function recoveredShareByYear(flights) {
 export function safeUrl(u) {
   return /^https:\/\/ll\.thespacedevs\.com\//.test(u || '') ? u : '#';
 }
+export function firsts(flights, boosters) {
+  const out = [];
+  const push = (label, f) => { if (f) out.push({ label, serial: f.serial, net: f.net, mission: f.mission, source: f.source }); };
+  const byNet = [...flights].sort((a, b) => a.net.localeCompare(b.net));
+  push('First flight in snapshot', byNet[0]);
+  push('First ASDS landing', byNet.find(f => f.landing_type === 'ASDS' && f.landing_success));
+  push('First RTLS landing', byNet.find(f => f.landing_type === 'RTLS' && f.landing_success));
+  push('First Falcon Heavy flight', byNet.find(f => f.rocket === 'Falcon Heavy'));
+  push('First reflight', byNet.find(f => f.n === 2));
+  const prog = recordProgression(flights);
+  for (const n of [5, 10, 15, 20, 25, 30]) {
+    const f = prog.find(p => p.n === n);
+    if (f) push(`First ${n}-flight booster`, f);
+  }
+  return out.sort((a, b) => a.net.localeCompare(b.net));
+}

@@ -11,6 +11,7 @@ Every Falcon first stage with a B10xx serial on one screen: how many times it fl
 - **As-of scrubber + Replay the years** (Space): drag the year slider or press Replay to watch the fleet grow. Stats, bars and leaderboards update as of each year. The year is shareable in the URL (`?y=2021`).
 - **Booster drawer** (click a bar, press `j`/`k`, or open `#B1067`): every flight with its mission, date, landing spot and source link; a mission timeline; days-between sparkline; landing breakdown; rank, block version and landing rate. Launch failures and Falcon Heavy flights are tagged.
 - **Records:** first reflight, fastest turnaround, most flights, every launch failure, and the busiest droneship. Each one links its source.
+- **Firsts:** a dated list of fleet firsts (first ASDS, first RTLS, first Heavy, first N-flight booster…) with source links.
 - **Active fleet over time:** how many boosters had flown by each year-end and were still flying, plus a Block 5 / Full Thrust / v1.0 legend.
 - **Turnaround trend:** median and fastest days between reflights, by year.
 - **Landing success rate by year.**
@@ -43,4 +44,4 @@ node shots.mjs                   # refresh screenshots/ + demo.gif (server must 
 `src/ledger.js` holds pure data functions, `src/charts.js` pure SVG builders, `src/app.js` the DOM wiring and `server.js` a static server for `src/` only. `scripts-flights.mjs` derives `flights.json` from the raw API pages, and `validate.mjs` does the cross-checks. Tests live in `test/` (vitest) and `e2e/` (Playwright). See [docs/ADVERSARIAL.md](docs/ADVERSARIAL.md) for the latest review notes.
 
 ## Keys
-`/` search · `j` / `k` next / previous booster · `Space` replay · `Esc` close
+`/` search · `j` / `k` next / previous booster · `[` / `]` nudge as-of year · `Space` replay · `Esc` close

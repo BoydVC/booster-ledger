@@ -46,6 +46,11 @@ function lists(bs) {
   $('fast').innerHTML = Object.values(best).sort((a, b) => a.days - b.days).slice(0, 10).map(g => `<li><button class="lk" data-s="${esc(g.serial)}">${esc(g.serial)} — ${g.days.toFixed(1)} days</button></li>`).join('');
   document.querySelectorAll('button.lk').forEach(el => el.onclick = () => open(el.dataset.s));
 }
+function firstsPanel() {
+  const rows = L.firsts(FL, all);
+  $('firsts').innerHTML = rows.map(r => `<div data-first="${esc(r.label)}"><b>${esc(r.label)}</b><br><button class="lk" data-s="${esc(r.serial)}">${esc(r.serial)}</button> · ${(r.net || '').slice(0, 10)} · <a href="${safeUrl(r.source)}" target="_blank" rel="noopener">${esc(r.mission)}</a></div>`).join('');
+  $('firsts').querySelectorAll('button.lk').forEach(el => el.onclick = () => open(el.dataset.s));
+}
 function recordsPanel() {
   const r = L.records(all, FL), a = (u, t) => `<a href="${safeUrl(u)}" target="_blank" rel="noopener">${esc(t)}</a>`;
   $('records').innerHTML = [
@@ -197,7 +202,7 @@ function stepBooster(dir) {
   open(rows[focusIdx].serial);
 }
 
-if (st.y != null && st.y >= Y0 && st.y <= Y1) { /* applied after scrubber init below */ } axis(); render(); recordsPanel(); trend(); years(); spots(); pads(); prog(); cmp(); fleet(); rate(); heat(); hist(); reuse(); padsChart(); recoveredChart();
+if (st.y != null && st.y >= Y0 && st.y <= Y1) { /* applied after scrubber init below */ } axis(); render(); recordsPanel(); firstsPanel(); trend(); years(); spots(); pads(); prog(); cmp(); fleet(); rate(); heat(); hist(); reuse(); padsChart(); recoveredChart();
 const lw = $('lanewrap'); if (lw.scrollWidth > lw.clientWidth) lw.scrollLeft = lw.scrollWidth; // newest years in view on narrow screens
 const deep = L.serialFromHash(location.hash); if (deep) open(deep);
 function tvCard(list, i) {
