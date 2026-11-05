@@ -2,7 +2,7 @@ import { chromium } from '@playwright/test'; import { execSync } from 'node:chil
 const b = await chromium.launch({ executablePath: process.env.PW_CHROME });
 const p = await b.newPage({ viewport: { width: 1440, height: 900 } }); const U = 'http://127.0.0.1:4477/';
 await p.goto(U); await p.waitForSelector('.lane'); await p.screenshot({ path: 'screenshots/hero-1440x900.png' });
-await p.locator('#top li').first().click(); await p.waitForTimeout(200); await p.screenshot({ path: 'screenshots/drawer.png' }); await p.click('#close');
+await p.goto(U + '?d=1#B1067'); await p.waitForTimeout(200); await p.screenshot({ path: 'screenshots/drawer.png' }); await p.click('#close');
 fs.mkdirSync('/tmp/blf', { recursive: true }); execSync('rm -f /tmp/blf/*');
 await p.click('#play'); for (let i = 0; i < 26; i++) { await p.screenshot({ path: `/tmp/blf/f${String(i).padStart(3,'0')}.png` }); await p.waitForTimeout(220); }
 const m = await b.newPage({ viewport: { width: 390, height: 844 } }); await m.goto(U); await m.waitForSelector('.lane'); await m.screenshot({ path: 'screenshots/phone-390x844.png' });

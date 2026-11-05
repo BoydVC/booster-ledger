@@ -1,8 +1,9 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Booster Ledger — Falcon reuse, flight by flight</title><link rel="stylesheet" href="style.css"></head>
-<body><header><h1>Booster Ledger</h1><p class="sub">Every Falcon first stage with a B10xx serial: how many times it flew, how it ended, how fast it turned around.</p></header>
-<section id="stats" aria-label="fleet stats"></section>
+<body><header><h1>Booster Ledger</h1><p class="sub">Keys: <kbd>/</kbd> search · <kbd>Space</kbd> replay · <kbd>Esc</kbd> close. Every Falcon first stage with a B10xx serial: how many times it flew, how it ended, how fast it turned around.</p></header>
+<section id="stats" aria-label="fleet stats"></section><div id="fate" aria-label="how boosters ended"></div>
 <section class="controls"><input id="q" placeholder="Search serial, e.g. B1067" aria-label="search"><select id="status" aria-label="status"><option value="all">All statuses</option></select>
+<select id="sort" aria-label="sort"><option value="flights">Most flown</option><option value="first">First flight</option><option value="newest">Newest</option></select>
 <button id="play" aria-label="replay">▶ Replay the years</button><span id="year" aria-live="polite"></span></section>
 <main><section><h2>Lifelines</h2><svg id="lanes" role="img" aria-label="booster lifelines"></svg></section>
 <aside><h2>Most flown</h2><ol id="top"></ol><h2>Fastest turnaround</h2><ol id="fast"></ol></aside></main>

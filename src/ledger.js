@@ -56,3 +56,27 @@ export function yearRange(bs) {
   const ys = bs.flatMap(b => [b.firstMs, b.lastMs]).filter(Boolean).map(t => new Date(t).getUTCFullYear());
   return [Math.min(...ys), Math.max(...ys)];
 }
+export const SORTS = {
+  flights: (a, b) => b.flights - a.flights || a.serial.localeCompare(b.serial),
+  first: (a, b) => a.firstMs - b.firstMs || a.serial.localeCompare(b.serial),
+  newest: (a, b) => b.firstMs - a.firstMs || a.serial.localeCompare(b.serial),
+};
+export function sortBy(bs, key = 'flights') {
+  if (!SORTS[key]) throw new Error(`unknown sort ${key}`);
+  return [...bs].sort(SORTS[key]);
+}
+export function rankOf(bs, serial) {
+  const i = leaderboard(bs, bs.length).findIndex(b => b.serial === serial);
+  return i < 0 ? null : i + 1;
+}
+export function landingRate(b) {
+  return b.landings_attempted ? b.landings_ok / b.landings_attempted : null;
+}
+export function fateBreakdown(bs) {
+  const c = statusCounts(bs), n = bs.length || 1;
+  return Object.entries(c).sort((a, b) => b[1] - a[1]).map(([status, count]) => ({ status, count, share: count / n }));
+}
+export function serialFromHash(hash) {
+  const m = /^#(B10\d\d)$/i.exec(hash || '');
+  return m ? m[1].toUpperCase() : null;
+}
