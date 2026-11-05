@@ -15,14 +15,14 @@ test('stat cards', async ({ page }) => {
   expect(await v('Record')).toBe(Math.max(...B.map(b => b.flights)) + ' flights');
 });
 test('most-flown list', async ({ page }) => {
-  await go(page); const items = await page.locator('#top li').allTextContents();
+  await go(page); const items = await page.locator('#top button').allTextContents();
   const exp = [...B].sort((a, b) => b.flights - a.flights || a.serial.localeCompare(b.serial)).slice(0, 10).map(b => `${b.serial} — ${b.flights} flights`);
   expect(items).toEqual(exp);
 });
 test('fastest-turnaround list', async ({ page }) => {
   await go(page); const best = {}; for (const g of gaps) if (!best[g.s] || g.d < best[g.s]) best[g.s] = g.d;
   const exp = Object.entries(best).sort((a, b) => a[1] - b[1]).slice(0, 10).map(([s, d]) => `${s} — ${d.toFixed(1)} days`);
-  expect(await page.locator('#fast li').allTextContents()).toEqual(exp);
+  expect(await page.locator('#fast button').allTextContents()).toEqual(exp);
 });
 test('records panel', async ({ page }) => {
   await go(page); const g = [...gaps].sort((a, b) => a.d - b.d)[0];

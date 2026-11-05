@@ -173,3 +173,10 @@ export function toCSV(rows, cols) {
   const q = v => { const s = v == null ? '' : String(v); return /[",\n\r]/.test(s) || /^[=+\-@]/.test(s) ? '"' + (/^[=+\-@]/.test(s) ? "'" : '') + s.replace(/"/g, '""') + '"' : s; };
   return [cols.join(','), ...rows.map(r => cols.map(c => q(r[c])).join(','))].join('\n') + '\n';
 }
+// Counts as of time t, from per-flight data (status is NOT back-dated; callers show final status).
+export function asOf(boosters, flights, t) {
+  if (!isFinite(t)) return boosters;
+  const n = {}, l = {};
+  for (const f of flights) if (Date.parse(f.net) < t) { n[f.serial] = (n[f.serial] || 0) + 1; if (f.landing_success) l[f.serial] = (l[f.serial] || 0) + 1; }
+  return boosters.filter(b => n[b.serial]).map(b => ({ ...b, flights: n[b.serial], landings_ok: l[b.serial] || 0 }));
+}

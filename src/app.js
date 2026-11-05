@@ -40,11 +40,11 @@ function lanes(bs) {
   svg.querySelectorAll('.lane').forEach(el => { el.onclick = () => open(el.dataset.s); el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); open(el.dataset.s); } }; });
 }
 function lists(bs) {
-  $('top').innerHTML = L.leaderboard(bs).map(b => `<li data-s="${esc(b.serial)}">${esc(b.serial)} — ${b.flights} flights</li>`).join('');
-  const gs = L.gaps(FL.filter(f => bs.some(b => b.serial === f.serial)));
+  $('top').innerHTML = L.leaderboard(bs).map(b => `<li><button class="lk" data-s="${esc(b.serial)}">${esc(b.serial)} — ${b.flights} flights</button></li>`).join('');
+  const keep = new Set(bs.map(b => b.serial)), gs = L.gaps(FL.filter(f => keep.has(f.serial) && Date.parse(f.net) < cutoff));
   const best = {}; for (const g of gs) if (!best[g.serial] || g.days < best[g.serial].days) best[g.serial] = g;
-  $('fast').innerHTML = Object.values(best).sort((a, b) => a.days - b.days).slice(0, 10).map(g => `<li data-s="${esc(g.serial)}">${esc(g.serial)} — ${g.days.toFixed(1)} days</li>`).join('');
-  document.querySelectorAll('li[data-s]').forEach(el => el.onclick = () => open(el.dataset.s));
+  $('fast').innerHTML = Object.values(best).sort((a, b) => a.days - b.days).slice(0, 10).map(g => `<li><button class="lk" data-s="${esc(g.serial)}">${esc(g.serial)} — ${g.days.toFixed(1)} days</button></li>`).join('');
+  document.querySelectorAll('button.lk').forEach(el => el.onclick = () => open(el.dataset.s));
 }
 function recordsPanel() {
   const r = L.records(all, FL), a = (u, t) => `<a href="${safeUrl(u)}" target="_blank" rel="noopener">${esc(t)}</a>`;
@@ -122,7 +122,7 @@ function open(s) {
   $('close').focus({ preventScroll: true }); $('drawer').scrollTop = 0;
 }
 function current() { return L.filter(all, { q: $('q').value, status: $('status').value }).filter(b => !$('fh').checked || HEAVY.has(b.serial)); }
-function render() { const bs = current(); stats(bs); fate(bs); lanes(bs); lists(bs); }
+function render() { const bs = L.asOf(current(), FL, cutoff); stats(bs); fate(bs); lanes(bs); lists(bs); }
 for (const k of Object.keys(L.statusCounts(all))) $('status').insertAdjacentHTML('beforeend', `<option value="${esc(k)}">${esc(k)}</option>`);
 const opts = L.sortBy(all, 'flights').map(b => `<option>${esc(b.serial)}</option>`).join('');
 $('ca').innerHTML = $('cb').innerHTML = opts; $('ca').selectedIndex = 0; $('cb').selectedIndex = 1;

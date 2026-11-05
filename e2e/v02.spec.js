@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 test('default sort puts record holder first', async ({ page }) => {
   await page.goto('/'); const first = await page.locator('.lane').first().getAttribute('data-s');
-  await expect(page.locator('#top li').first()).toContainText(first);
+  await expect(page.locator('#top button').first()).toContainText(first);
 });
 test('sort select changes order', async ({ page }) => {
   await page.goto('/'); const a = await page.locator('.lane').first().getAttribute('data-s');
