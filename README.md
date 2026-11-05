@@ -7,7 +7,7 @@ Every Falcon first stage with a B10xx serial on one screen: how many times it fl
 ![wall](screenshots/wall-1440x900.png)
 
 ## What's on the screen
-- **Lifelines:** one bar per booster, from its first flight to its last. Blue is active, gold expended, red lost or destroyed, and the number is its flight count. Sort by most flown, first flight or newest; filter by status, Falcon Heavy, or landing type (ASDS / RTLS / Ocean / expended); search by serial or mission name.
+- **Lifelines:** one bar per booster, from its first flight to its last. Blue is active, gold expended, red lost or destroyed, and the number is its flight count. Sort by most flown, most landings, first flight or newest; filter by status, Falcon Heavy, or landing type (ASDS / RTLS / Ocean / expended); search by serial or mission name.
 - **As-of scrubber + Replay the years** (Space): drag the year slider or press Replay to watch the fleet grow. Stats, bars and leaderboards update as of each year. The year is shareable in the URL (`?y=2021`).
 - **Booster drawer** (click a bar, press `j`/`k`, or open `#B1067`): every flight with its mission, date, landing spot and source link; a mission timeline; days-between sparkline; landing breakdown; rank, block version and landing rate; a per-booster flights CSV. Launch failures and Falcon Heavy flights are tagged.
 - **Records:** first reflight, fastest turnaround, most flights, every launch failure, and the busiest droneship. Each one links its source.
@@ -44,4 +44,4 @@ node shots.mjs                   # refresh screenshots/ + demo.gif (server must 
 `src/ledger.js` holds pure data functions, `src/charts.js` pure SVG builders, `src/app.js` the DOM wiring and `server.js` a static server for `src/` only. `scripts-flights.mjs` derives `flights.json` from the raw API pages, and `validate.mjs` does the cross-checks. Tests live in `test/` (vitest) and `e2e/` (Playwright). See [docs/ADVERSARIAL.md](docs/ADVERSARIAL.md) for the latest review notes.
 
 ## Keys
-`/` search · `j` / `k` next / previous booster · `[` / `]` nudge as-of year · `Space` replay · `?` help · `Esc` close. On a phone the keyboard hint is hidden and the on-this-page TOC starts collapsed so the lifelines show sooner.
+`/` search · `j` / `k` next / previous booster · `[` / `]` nudge as-of year · `Space` replay · `r` random active · `?` help · `Esc` close. On a phone the keyboard hint is hidden and the on-this-page TOC starts collapsed so the lifelines show sooner.

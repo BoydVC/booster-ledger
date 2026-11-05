@@ -2,9 +2,10 @@
 
 ## 0.2.0 — 2026-11-05 (draft PR #1)
 
-TokenMax final-day burn rounds 17–45 on branch `v0.2`.
+TokenMax final-day burn rounds 17–46 on branch `v0.2`.
 
 ### Added
+- `r` opens a random active booster (`?seed=` for tests)
 - Most-landings sort (shareable `?sort=landings`)
 - Drawer copy-link + per-booster flights CSV
 - Cumulative fleet flights chart; `?` keyboard help dialog
