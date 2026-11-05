@@ -97,6 +97,20 @@ function years() {
   g += Object.entries(TCOL).slice(0, 4).map(([k, c], i) => `<rect x="${pad + i * 80}" y="8" width="10" height="10" fill="${c}"/><text x="${pad + 14 + i * 80}" y="17" fill="#8a96a8" font-size="11">${k}</text>`).join('');
   $('yearsvg').setAttribute('viewBox', `0 0 ${w} ${h}`); $('yearsvg').innerHTML = g;
 }
+function prog() {
+  const P = L.recordProgression(FL); if (!P.length) return;
+  const w = 640, h = 240, pad = 40, t0 = Date.parse(P[0].net), t1 = Date.parse(fsnap.fetched_at), m = P.at(-1).n;
+  const x = f => pad + (w - pad * 2) * (Date.parse(f.net) - t0) / (t1 - t0), y = n => h - 28 - (h - 50) * n / m;
+  let g = '';
+  for (let yy = new Date(t0).getUTCFullYear() + 1; yy <= new Date(t1).getUTCFullYear(); yy++) { const xx = pad + (w - pad * 2) * (Date.UTC(yy, 0) - t0) / (t1 - t0); g += `<line x1="${xx}" x2="${xx}" y1="10" y2="${h - 24}" stroke="#1e2838"/><text x="${xx + 2}" y="${h - 8}" fill="#8a96a8" font-size="11">${String(yy).slice(2)}</text>`; }
+  g += `<path d="${P.map((f, i) => `${i ? `L${x(f).toFixed(1)},${y(P[i - 1].n).toFixed(1)}L` : 'M'}${x(f).toFixed(1)},${y(f.n).toFixed(1)}`).join('')}" fill="none" stroke="#ffc94f" stroke-width="2.5"/>`;
+  g += P.map(f => `<circle class="rp" data-n="${f.n}" data-s="${esc(f.serial)}" cx="${x(f).toFixed(1)}" cy="${y(f.n).toFixed(1)}" r="3.5" fill="#ffc94f"><title>Flight ${f.n}: ${esc(f.serial)}, ${d10(f.net)}, ${esc(f.mission)}</title></circle>`).join('');
+  g += `<text x="${pad}" y="18" fill="#e8edf5" font-size="12">${m} flights</text>`;
+  $('progsvg').setAttribute('viewBox', `0 0 ${w} ${h}`); $('progsvg').innerHTML = g;
+  $('progsvg').querySelectorAll('circle').forEach(c => c.onclick = () => open(c.dataset.s));
+  const last = P.at(-1), a = f => `<a href="${safeUrl(f.source)}" target="_blank" rel="noopener">${esc(f.mission)}</a>`;
+  $('progtxt').innerHTML = `Flight 10 first reached by ${esc(P[9]?.serial ?? '—')} (${d10(P[9]?.net)}${P[9] ? ', ' + a(P[9]) : ''}); flight ${last.n} by ${esc(last.serial)} (${d10(last.net)}, ${a(last)}).`;
+}
 function pads() {
   const row = (k, x) => `<tr data-${k}="${esc(x.name)}"><td>${esc(x.name)}</td><td>${x.count}</td></tr>`;
   $('padtable').innerHTML = '<tr><th>Pad / rocket</th><th>Booster flights</th></tr>' + L.countBy(FL, 'pad').map(x => row('pad', x)).join('') + L.countBy(FL, 'rocket').map(x => row('rocket', x)).join('');
@@ -149,7 +163,7 @@ $('drawer').addEventListener('close', () => history.replaceState(null, '', locat
 addEventListener('hashchange', () => { const s = L.serialFromHash(location.hash); if (s) open(s); });
 let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(render, 120); });
 $('src').innerHTML = `Data: <a href="https://thespacedevs.com/llapi">The Space Devs Launch Library 2</a> — boosters snapshot ${d10(snap.fetched_at)}, flights snapshot ${d10(fsnap.fetched_at)}. Unofficial; not affiliated with SpaceX.`;
-axis(); render(); recordsPanel(); trend(); years(); spots(); pads(); cmp();
+axis(); render(); recordsPanel(); trend(); years(); spots(); pads(); prog(); cmp();
 const lw = $('lanewrap'); if (lw.scrollWidth > lw.clientWidth) lw.scrollLeft = lw.scrollWidth; // newest years in view on narrow screens
 const deep = L.serialFromHash(location.hash); if (deep) open(deep);
 document.body.dataset.ready = '1';

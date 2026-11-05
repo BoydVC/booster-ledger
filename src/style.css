@@ -25,3 +25,5 @@ main>*{min-width:0}
 #panels svg text{font-size:13px}
 .chk{color:var(--mut);display:flex;gap:6px;align-items:center}#err{background:#2a1418;border:1px solid var(--red);padding:12px;border-radius:8px;margin:12px 0}
 button.lk{background:none;border:0;padding:1px 0;color:inherit;font:inherit;cursor:pointer;text-align:left}button.lk:hover,button.lk:focus-visible{color:var(--acc);text-decoration:underline}
+#progsvg{width:100%;background:#0f1520;border-radius:10px}#progsvg circle{cursor:pointer}
+a{color:var(--acc)}

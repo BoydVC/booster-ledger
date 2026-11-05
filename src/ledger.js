@@ -180,3 +180,9 @@ export function asOf(boosters, flights, t) {
   for (const f of flights) if (Date.parse(f.net) < t) { n[f.serial] = (n[f.serial] || 0) + 1; if (f.landing_success) l[f.serial] = (l[f.serial] || 0) + 1; }
   return boosters.filter(b => n[b.serial]).map(b => ({ ...b, flights: n[b.serial], landings_ok: l[b.serial] || 0 }));
 }
+// The first booster to reach each flight count n (record progression).
+export function recordProgression(flights) {
+  const best = {};
+  for (const f of flights) if (f.n && (!best[f.n] || f.net < best[f.n].net)) best[f.n] = f;
+  return Object.values(best).sort((a, b) => a.n - b.n);
+}
