@@ -173,6 +173,15 @@ document.addEventListener('keydown', e => {
   }
   if ($('drawer').open) return;
   if (e.key === '/') { e.preventDefault(); $('q').focus(); }
+  if (e.key === 'r' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    const pool = all.filter(b => b.status === 'active');
+    if (pool.length) {
+      e.preventDefault();
+      const seed = Number(new URLSearchParams(location.search).get('seed')) || (Date.now() % 1e9);
+      const pick = pool[Math.abs(seed) % pool.length];
+      open(pick.serial);
+    }
+  }
   else if (e.key === ' ' && !e.target.matches('button,.lane')) { e.preventDefault(); $('play').click(); }
 });
 $('drawer').addEventListener('close', () => history.replaceState(null, '', location.pathname + location.search));

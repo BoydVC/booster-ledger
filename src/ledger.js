@@ -60,6 +60,7 @@ export const SORTS = {
   flights: (a, b) => b.flights - a.flights || a.serial.localeCompare(b.serial),
   first: (a, b) => a.firstMs - b.firstMs || a.serial.localeCompare(b.serial),
   newest: (a, b) => b.firstMs - a.firstMs || a.serial.localeCompare(b.serial),
+  landings: (a, b) => b.landings_ok - a.landings_ok || b.flights - a.flights || a.serial.localeCompare(b.serial),
 };
 export function sortBy(bs, key = 'flights') {
   if (!Object.hasOwn(SORTS, key)) throw new Error(`unknown sort ${key}`);
