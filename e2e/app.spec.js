@@ -13,7 +13,7 @@ test('status filter', async ({ page }) => {
 });
 test('drawer opens with source link', async ({ page }) => {
   await page.goto('/'); await page.locator('#top li').first().click();
-  await expect(page.locator('#drawer')).toBeVisible(); await expect(page.locator('#detail a')).toHaveAttribute('href', /thespacedevs/);
+  await expect(page.locator('#drawer')).toBeVisible(); await expect(page.locator('#detail a').last()).toHaveAttribute('href', /thespacedevs/);
   await page.click('#close'); await expect(page.locator('#drawer')).toBeHidden();
 });
 test('replay shows years', async ({ page }) => {

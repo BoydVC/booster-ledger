@@ -5,7 +5,9 @@
 <section class="controls"><input id="q" placeholder="Search serial, e.g. B1067" aria-label="search"><select id="status" aria-label="status"><option value="all">All statuses</option></select>
 <select id="sort" aria-label="sort"><option value="flights">Most flown</option><option value="first">First flight</option><option value="newest">Newest</option></select>
 <button id="play" aria-label="replay">▶ Replay the years</button><span id="year" aria-live="polite"></span></section>
-<main><section><h2>Lifelines</h2><svg id="lanes" role="img" aria-label="booster lifelines"></svg></section>
-<aside><h2>Most flown</h2><ol id="top"></ol><h2>Fastest turnaround</h2><ol id="fast"></ol></aside></main>
+<main><section><h2>Lifelines</h2><div id="lanewrap"><svg id="axis" aria-hidden="true"></svg><svg id="lanes" role="img" aria-label="booster lifelines"></svg></div></section>
+<aside><h2>Records</h2><div id="records"></div><h2>Most flown</h2><ol id="top"></ol><h2>Fastest turnaround</h2><ol id="fast"></ol></aside></main>
+<section id="trend"><h2>Turnaround trend</h2><p class="sub">Median and fastest days between consecutive flights of the same booster, by year of the reflight.</p><svg id="trendsvg" role="img" aria-label="turnaround trend by year"></svg></section>
+<section id="cmp"><h2>Compare two boosters</h2><select id="ca" aria-label="booster A"></select> vs <select id="cb" aria-label="booster B"></select><table id="ctable"></table></section>
 <dialog id="drawer"><div id="detail"></div><button id="close">Close</button></dialog>
 <footer id="src"></footer><script type="module" src="app.js"></script></body></html>
