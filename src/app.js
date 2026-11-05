@@ -102,7 +102,7 @@ document.addEventListener('keydown', e => {
 });
 $('drawer').addEventListener('close', () => history.replaceState(null, '', location.pathname + location.search));
 addEventListener('hashchange', () => { const s = L.serialFromHash(location.hash); if (s) open(s); });
-addEventListener('resize', render);
+let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(render, 120); });
 $('src').innerHTML = `Data: <a href="https://thespacedevs.com/llapi">The Space Devs Launch Library 2</a> — boosters snapshot ${d10(snap.fetched_at)}, flights snapshot ${d10(fsnap.fetched_at)}. Unofficial; not affiliated with SpaceX.`;
 axis(); render(); recordsPanel(); trend(); cmp();
 const lw = $('lanewrap'); if (lw.scrollWidth > lw.clientWidth) lw.scrollLeft = lw.scrollWidth; // newest years in view on narrow screens
