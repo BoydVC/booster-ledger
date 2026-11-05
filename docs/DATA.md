@@ -15,3 +15,6 @@ Both snapshots come from the public [Launch Library 2 API](https://thespacedevs.
 - **Status** (active, expended, lost, destroyed, retired) is the booster's *current* status. Replay shows counts as of each year but keeps the final status colors, because the data doesn't give a dated status history.
 - The current year is a partial year and is marked `*`.
 - The only boosters included are those with B10xx serials, which covers Falcon 9 Block 1 through Block 5 and the Falcon Heavy side and core stages.
+
+## Block version
+`blockOf` prefers an explicit "Block N" (or "Falcon Heavy core") phrase in the LL2 `details` field. When details omit it, the serial is mapped with the public Falcon 9 ranges: B1046+ is Block 5 (first Block 5 flight was Bangabandhu-1 on B1046, May 2018), B1021–B1045 is Full Thrust (Block 3/4 era), and earlier B10xx cores are v1.0/v1.1. Zero-flight boosters such as B1099 stay in the raw snapshot but are filtered out of the on-screen fleet (`flights > 0`).

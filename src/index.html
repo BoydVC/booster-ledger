@@ -1,17 +1,19 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Booster Ledger — Falcon reuse, flight by flight</title><link rel="stylesheet" href="style.css"></head>
-<body><header><h1>Booster Ledger</h1><p class="sub">Keys: <kbd>/</kbd> search · <kbd>Space</kbd> replay · <kbd>Esc</kbd> close. Every Falcon first stage with a B10xx serial: how many times it flew, how it ended, how fast it turned around.</p></header>
+<body><header><h1>Booster Ledger</h1><p class="sub">Keys: <kbd>/</kbd> search · <kbd>j</kbd>/<kbd>k</kbd> next/prev · <kbd>Space</kbd> replay · <kbd>Esc</kbd> close. Every Falcon first stage with a B10xx serial: how many times it flew, how it ended, how fast it turned around.</p></header>
 <section id="stats" aria-label="fleet stats"></section><div id="fate" role="img" aria-label="how boosters ended"></div>
-<section class="controls"><input id="q" placeholder="Search serial, e.g. B1067" aria-label="search"><select id="status" aria-label="status"><option value="all">All statuses</option></select>
+<section class="controls"><input id="q" placeholder="Search serial or mission" aria-label="search"><select id="status" aria-label="status"><option value="all">All statuses</option></select>
 <select id="sort" aria-label="sort"><option value="flights">Most flown</option><option value="first">First flight</option><option value="newest">Newest</option></select>
 <label class="chk"><input type="checkbox" id="fh"> Falcon Heavy only</label>
 <button id="csv" aria-label="CSV: download the boosters shown">⬇ CSV</button>
 <button id="share" aria-label="Link: copy a link to this view">🔗 Link</button>
 <a id="tvlink" href="?mode=tv">📺 TV mode</a>
-<button id="play">▶ Replay the years</button><span id="year" aria-live="polite"></span></section>
+<button id="play">▶ Replay the years</button>
+<label class="scrub">As of <input id="scrub" type="range" min="0" max="0" value="0" aria-label="Year scrubber"><span id="year" aria-live="polite"></span></label></section>
 <main><section><h2>Lifelines</h2><div id="lanewrap"><svg id="axis" aria-hidden="true"></svg><svg id="lanes" role="group" aria-label="booster lifelines, one bar per booster; press Enter on a bar for details"></svg></div></section>
 <aside><h2>Records</h2><div id="records"></div><h2>Most flown</h2><ol id="top"></ol><h2>Fastest turnaround</h2><ol id="fast"></ol></aside></main>
-<div id="panels"><section id="trend"><h2>Turnaround trend</h2><p class="sub">Median and fastest days between consecutive flights of the same booster, by year of the reflight. * = year to date.</p><svg id="trendsvg" role="img" aria-label="turnaround trend by year"></svg></section>
+<div id="panels"><section id="fleet"><h2>Active fleet over time</h2><p class="sub">Boosters that had flown by each year-end and had not yet flown their last (or are still active). Dashed line = all that had ever flown by then. * = year to date.</p><svg id="fleetsvg" role="img" aria-label="active fleet size by year"></svg><div id="blocks" class="legend"></div></section>
+<section id="trend"><h2>Turnaround trend</h2><p class="sub">Median and fastest days between consecutive flights of the same booster, by year of the reflight. * = year to date.</p><svg id="trendsvg" role="img" aria-label="turnaround trend by year"></svg></section>
 <section id="years"><h2>Flights per year, by how the booster came home</h2><p class="sub">Droneship (ASDS), back to land (RTLS), ocean splashdown test, or expended. * = year to date.</p><svg id="yearsvg" role="img" aria-label="booster flights per year by landing type"></svg></section>
 <section id="prog"><h2>Reuse record progression</h2><p class="sub">The first booster to reach each flight count. Hover a step for the mission; click to open that booster.</p><svg id="progsvg" role="img" aria-label="reuse record progression over time"></svg><p id="progtxt" class="sub"></p></section>
 <section id="spots"><h2>Landing spots</h2><table id="spottable"></table><h2>Launch pads &amp; rockets</h2><table id="padtable"></table></section>

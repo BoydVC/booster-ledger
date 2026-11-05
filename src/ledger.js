@@ -186,3 +186,58 @@ export function recordProgression(flights) {
   for (const f of flights) if (f.n && (!best[f.n] || f.net < best[f.n].net)) best[f.n] = f;
   return Object.values(best).sort((a, b) => a.n - b.n);
 }
+
+// ---- Round 18+: block version, fleet series, mission search, timeline ----
+// Block version: prefer LL2 details text; else public Falcon 9 serial ranges
+// (Block 5 begins at B1046 — first Block 5 flight, Bangabandhu-1, May 2018).
+export function blockOf(details, serial) {
+  if (/Falcon Heavy core/i.test(details || '')) return 'FH core';
+  const m = /Block\s+(\d+)/i.exec(details || '');
+  if (m) return 'Block ' + m[1];
+  const n = /^B(\d+)$/.exec(serial || '');
+  if (!n) return 'Unknown';
+  const num = +n[1];
+  if (num >= 1046) return 'Block 5';
+  if (num >= 1021) return 'Full Thrust'; // includes Block 3/4 Full Thrust era
+  if (num >= 1001) return 'v1.0/v1.1';
+  return 'Unknown';
+}
+export function blockCounts(boosters) {
+  const c = {};
+  for (const b of boosters) { const k = blockOf(b.details, b.serial); c[k] = (c[k] || 0) + 1; }
+  return Object.entries(c).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([block, count]) => ({ block, count }));
+}
+// For each year-end (UTC Jan 1 of next year), how many boosters had flown by then and had not yet flown their last (or are still active).
+export function fleetSizeByYear(boosters, flights, y0, y1) {
+  const first = {}, last = {};
+  for (const f of flights) {
+    const t = Date.parse(f.net);
+    if (first[f.serial] == null || t < first[f.serial]) first[f.serial] = t;
+    if (last[f.serial] == null || t > last[f.serial]) last[f.serial] = t;
+  }
+  const status = Object.fromEntries(boosters.map(b => [b.serial, b.status]));
+  const out = [];
+  for (let y = y0; y <= y1; y++) {
+    const t = Date.UTC(y + 1, 0);
+    let flying = 0, debuted = 0, retired = 0;
+    for (const s of Object.keys(first)) {
+      if (first[s] >= t) continue;
+      debuted++;
+      const still = status[s] === 'active' || (last[s] ?? 0) >= t;
+      if (still) flying++; else retired++;
+    }
+    out.push({ year: y, flying, debuted, retired });
+  }
+  return out;
+}
+export function missionsMatching(flights, q) {
+  const s = (q || '').trim().toUpperCase();
+  if (!s) return new Set();
+  return new Set(flights.filter(f => (f.mission || '').toUpperCase().includes(s) || (f.serial || '').toUpperCase().includes(s)).map(f => f.serial));
+}
+export function filterWithMissions(bs, flights, { q = '', status = 'all' } = {}) {
+  const s = q.trim().toUpperCase();
+  if (!s) return filter(bs, { q: '', status });
+  const hit = missionsMatching(flights, q);
+  return bs.filter(b => (status === 'all' || b.status === status) && (b.serial.toUpperCase().includes(s) || hit.has(b.serial)));
+}

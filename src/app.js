@@ -88,16 +88,17 @@ function open(s) {
   const b = all.find(x => x.serial === s); if (!b) return;
   const fs = L.flightsFor(FL, s), lr = L.landingRate(b), fpy = L.flightsPerYear(b), lb = L.landingBreakdown(fs);
   history.replaceState(null, '', '#' + s);
-  $('detail').innerHTML = `<h2 id="dtitle">${esc(b.serial)}</h2><p>Status: <b>${esc(b.status)}</b> · #${L.rankOf(all, b.serial)} of ${all.length} by flights${lr != null ? ` · ${Math.round(lr * 100)}% landings` : ''}</p>
+  $('detail').innerHTML = `<h2 id="dtitle">${esc(b.serial)}</h2><p>Status: <b>${esc(b.status)}</b> · ${esc(L.blockOf(b.details, b.serial))} · #${L.rankOf(all, b.serial)} of ${all.length} by flights${lr != null ? ` · ${Math.round(lr * 100)}% landings` : ''}</p>
   <p>${b.flights} flights · ${b.landings_ok}/${b.landings_attempted ?? '?'} landings · first ${d10(b.first)} · last ${d10(b.last)}${fpy ? ` · ${fpy.toFixed(1)} flights/yr` : ''}</p>
   <p class="sub">${esc(b.details)}</p>
-  ${(() => { const g = L.gaps(fs); if (g.length < 2) return ''; return `<h3>Days between flights</h3><svg id="spark" viewBox="0 0 640 70" preserveAspectRatio="none"><polyline points="${C.sparkPoints(g)}" fill="none" stroke="#4fb3ff" stroke-width="2"/></svg><p class="sub">From ${Math.round(g[0].days)} days before flight 2 to ${Math.round(g.at(-1).days)} days before flight ${fs.length}; fastest ${Math.min(...g.map(x => x.days)).toFixed(1)}.</p>`; })()}<h3>Where it landed</h3><p id="lb">${lb.map(x => `${esc(x.where)} ${x.success}/${x.attempts}`).join(' · ')}</p>
+  ${(() => { const g = L.gaps(fs); if (g.length < 2) return ''; return `<h3>Days between flights</h3><svg id="spark" viewBox="0 0 640 70" preserveAspectRatio="none"><polyline points="${C.sparkPoints(g)}" fill="none" stroke="#4fb3ff" stroke-width="2"/></svg><p class="sub">From ${Math.round(g[0].days)} days before flight 2 to ${Math.round(g.at(-1).days)} days before flight ${fs.length}; fastest ${Math.min(...g.map(x => x.days)).toFixed(1)}.</p>`; })()}${(() => { const r = C.timelineSVG(fs, { w: innerWidth < 700 ? 400 : 640 }); if (!r) return ''; return `<h3>Mission timeline</h3><svg id="tline" viewBox="${r.viewBox}" role="img" aria-label="mission timeline">${r.svg}</svg>`; })()}
+  <h3>Where it landed</h3><p id="lb">${lb.map(x => `${esc(x.where)} ${x.success}/${x.attempts}`).join(' · ')}</p>
   <h3>Every flight</h3><div class="tl"><table><tr><th>#</th><th>Date</th><th>Mission</th><th>Landing</th></tr>${fs.map(f => `<tr${f.launch_status && f.launch_status !== 'Success' ? ` class="fail" title="Launch outcome: ${esc(f.launch_status)}"` : ''}><td>${f.n ?? ''}</td><td>${d10(f.net)}</td><td><a href="${safeUrl(f.source)}" target="_blank" rel="noopener">${esc(f.mission)}</a>${f.launch_status && f.launch_status !== 'Success' ? ' <span class="bad">(launch failure)</span>' : ''}${f.rocket === 'Falcon Heavy' ? ' <span class="sub">· Falcon Heavy</span>' : ''}</td><td class="${f.landing_success ? 'ok' : f.landing_attempt ? 'bad' : ''}">${f.landing_attempt ? esc(f.landing_loc || f.landing_type) + (f.landing_success ? ' ✓' : ' ✗') : 'expended'}</td></tr>`).join('')}</table></div>
   <p><a href="${safeUrl(b.source)}" target="_blank" rel="noopener">Booster source record</a></p>`;
   if (!$('drawer').open) $('drawer').showModal();
   $('close').focus({ preventScroll: true }); $('drawer').scrollTop = 0;
 }
-function current() { return L.filter(all, { q: $('q').value, status: $('status').value }).filter(b => !$('fh').checked || HEAVY.has(b.serial)); }
+function current() { return L.filterWithMissions(all, FL, { q: $('q').value, status: $('status').value }).filter(b => !$('fh').checked || HEAVY.has(b.serial)); }
 function render() { const bs = L.asOf(current(), FL, cutoff); stats(bs); fate(bs); lanes(bs); lists(bs); }
 for (const k of Object.keys(L.statusCounts(all))) $('status').insertAdjacentHTML('beforeend', `<option value="${esc(k)}">${esc(k)}</option>`);
 const opts = L.sortBy(all, 'flights').map(b => `<option>${esc(b.serial)}</option>`).join('');
@@ -112,20 +113,53 @@ $('share').onclick = async () => { syncUrl(); try { await navigator.clipboard.wr
 let playing = false;
 $('play').onclick = async () => {
   if (playing) return; playing = true; $('play').disabled = true;
-  for (let y = Y0; y <= Y1; y++) { cutoff = Date.UTC(y + 1, 0); $('year').textContent = `${y} · ${L.activeAt(current(), cutoff).length} flying`; render(); await new Promise(r => setTimeout(r, matchMedia('(prefers-reduced-motion: reduce)').matches ? 120 : 450)); }
-  cutoff = Infinity; $('year').textContent = ''; render(); playing = false; $('play').disabled = false;
+  for (let y = Y0; y <= Y1; y++) { setCutoffYear(y); $('year').textContent = `${y} · ${L.activeAt(current(), cutoff).length} flying`; await new Promise(r => setTimeout(r, matchMedia('(prefers-reduced-motion: reduce)').matches ? 120 : 450)); }
+  setCutoffYear(null); playing = false; $('play').disabled = false;
 };
 document.addEventListener('keydown', e => {
-  if (e.target.matches('input,select')) { if (e.key === 'Escape') e.target.blur(); return; }
+  if (e.target.matches('input,select,textarea')) { if (e.key === 'Escape') e.target.blur(); return; }
+  if (e.key === 'j' || e.key === 'k') {
+    e.preventDefault();
+    const rows = ordered();
+    if ($('drawer').open) {
+      const cur = L.serialFromHash(location.hash);
+      const i = rows.findIndex(b => b.serial === cur);
+      focusIdx = i < 0 ? 0 : i;
+    }
+    stepBooster(e.key === 'j' ? 1 : -1);
+    return;
+  }
   if ($('drawer').open) return;
   if (e.key === '/') { e.preventDefault(); $('q').focus(); }
   else if (e.key === ' ' && !e.target.matches('button,.lane')) { e.preventDefault(); $('play').click(); }
 });
 $('drawer').addEventListener('close', () => history.replaceState(null, '', location.pathname + location.search));
 addEventListener('hashchange', () => { const s = L.serialFromHash(location.hash); if (s) open(s); });
-let rz, lastCW = CW().w; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { render(); if (CW().w !== lastCW) { lastCW = CW().w; trend(); years(); prog(); cmp(); } }, 120); });
+let rz, lastCW = CW().w; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { render(); if (CW().w !== lastCW) { lastCW = CW().w; trend(); years(); prog(); cmp(); fleet(); } }, 120); });
 $('src').innerHTML = `Data: <a href="https://thespacedevs.com/llapi">The Space Devs Launch Library 2</a> — boosters snapshot ${d10(snap.fetched_at)}, flights snapshot ${d10(fsnap.fetched_at)}. Unofficial; not affiliated with SpaceX.`;
-axis(); render(); recordsPanel(); trend(); years(); spots(); pads(); prog(); cmp();
+function fleet() {
+  const series = L.fleetSizeByYear(all, FL, Y0, Y1);
+  const r = C.fleetSVG(series, NOWY, CW()); if (!r) return;
+  $('fleetsvg').setAttribute('viewBox', r.viewBox); $('fleetsvg').innerHTML = r.svg;
+  $('blocks').textContent = L.blockCounts(all).map(x => `${x.block} ${x.count}`).join(' · ');
+}
+function setCutoffYear(y) {
+  if (y == null || y > Y1) { cutoff = Infinity; $('year').textContent = ''; $('scrub').value = String(Y1 - Y0 + 1); }
+  else { cutoff = Date.UTC(y + 1, 0); $('year').textContent = `${y}`; $('scrub').value = String(y - Y0); }
+  render();
+}
+$('scrub').min = '0'; $('scrub').max = String(Y1 - Y0 + 1); $('scrub').value = String(Y1 - Y0 + 1);
+$('scrub').oninput = () => { const v = +$('scrub').value; setCutoffYear(v > Y1 - Y0 ? null : Y0 + v); };
+
+let focusIdx = 0;
+function ordered() { return L.sortBy(current(), $('sort').value); }
+function stepBooster(dir) {
+  const rows = ordered(); if (!rows.length) return;
+  focusIdx = (focusIdx + dir + rows.length) % rows.length;
+  open(rows[focusIdx].serial);
+}
+
+axis(); render(); recordsPanel(); trend(); years(); spots(); pads(); prog(); cmp(); fleet();
 const lw = $('lanewrap'); if (lw.scrollWidth > lw.clientWidth) lw.scrollLeft = lw.scrollWidth; // newest years in view on narrow screens
 const deep = L.serialFromHash(location.hash); if (deep) open(deep);
 function tvCard(list, i) {

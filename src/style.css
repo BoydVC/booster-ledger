@@ -36,3 +36,9 @@ body.tv>*:not(#tv){display:none!important}body.tv{padding:0;overflow:hidden}#tv{
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @media (max-width:700px){#panels svg text{font-size:12px}}
 @media (min-width:1600px){dialog{max-width:860px;font-size:16px}body{font-size:16px}}
+#fleetsvg,#tline{width:100%;max-width:1000px;background:#0f1520;border-radius:10px;display:block}
+#tline{max-width:none;height:90px;margin:6px 0 10px}
+.scrub{display:flex;gap:8px;align-items:center;color:var(--mut)}
+.scrub input[type=range]{width:160px;accent-color:var(--acc)}
+#fleet{margin-top:22px}
+@media (max-width:700px){.scrub input[type=range]{width:110px}#tline{height:80px}}
