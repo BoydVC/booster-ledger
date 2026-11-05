@@ -251,3 +251,30 @@ export function landingSuccessByYear(flights) {
   }
   return Object.values(by).sort((a, b) => a.year - b.year).map(e => ({ ...e, rate: e.attempts ? e.success / e.attempts : null }));
 }
+export function flightsByMonth(flights) {
+  const by = {};
+  for (const f of flights) {
+    const key = f.net.slice(0, 7); // YYYY-MM
+    by[key] = (by[key] || 0) + 1;
+  }
+  const keys = Object.keys(by).sort();
+  if (!keys.length) return { keys: [], years: [], cells: [] };
+  const y0 = +keys[0].slice(0, 4), y1 = +keys.at(-1).slice(0, 4);
+  const years = [];
+  for (let y = y0; y <= y1; y++) years.push(y);
+  const cells = years.map(y => Array.from({ length: 12 }, (_, m) => by[`${y}-${String(m + 1).padStart(2, '0')}`] || 0));
+  return { years, cells, max: Math.max(0, ...cells.flat()) };
+}
+export function turnaroundHistogram(flights, bin = 10, cap = 200) {
+  const gs = gaps(flights).map(g => g.days);
+  if (!gs.length) return [];
+  const n = Math.ceil(cap / bin);
+  const buckets = Array.from({ length: n }, (_, i) => ({ lo: i * bin, hi: (i + 1) * bin, count: 0 }));
+  const overflow = { lo: cap, hi: Infinity, count: 0 };
+  for (const d of gs) {
+    if (d >= cap) overflow.count++;
+    else buckets[Math.min(n - 1, Math.floor(d / bin))].count++;
+  }
+  if (overflow.count) buckets.push(overflow);
+  return buckets;
+}

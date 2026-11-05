@@ -104,3 +104,36 @@ export function rateSVG(series, nowYear, { w = 640 } = {}) {
   g += `<text x="${w - pad}" y="16" text-anchor="end" fill="#5fd38d" font-size="12">landing success rate</text>`;
   return { viewBox: `0 0 ${w} ${h}`, svg: g };
 }
+export function heatSVG(heat, { w = 640 } = {}) {
+  if (!heat.years.length) return null;
+  const short = w < 500;
+  const cellW = Math.min(28, (w - 60) / 12), cellH = 16, pad = 44;
+  const h = pad / 2 + heat.years.length * (cellH + 4) + 36;
+  const months = short ? ['J','F','M','A','M','J','J','A','S','O','N','D'] : ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let g = months.map((m, i) => `<text x="${pad + i * cellW + cellW / 2}" y="14" text-anchor="middle" fill="#8a96a8" font-size="10">${m}</text>`).join('');
+  heat.years.forEach((y, yi) => {
+    const yy = 22 + yi * (cellH + 4);
+    g += `<text x="4" y="${yy + cellH - 4}" fill="#8a96a8" font-size="11">${short ? "'" + String(y).slice(2) : y}</text>`;
+    heat.cells[yi].forEach((n, mi) => {
+      const intens = heat.max ? n / heat.max : 0;
+      const fill = n === 0 ? '#141b27' : `rgba(79,179,255,${(0.15 + 0.85 * intens).toFixed(3)})`;
+      g += `<rect class="hm" data-y="${y}" data-m="${mi + 1}" data-n="${n}" x="${pad + mi * cellW}" y="${yy}" width="${cellW - 1}" height="${cellH}" fill="${fill}" rx="2"><title>${y}-${String(mi + 1).padStart(2, '0')}: ${n} flights</title></rect>`;
+    });
+  });
+  g += `<text x="${pad}" y="${h - 8}" fill="#8a96a8" font-size="11">darker = more booster flights that month · max ${heat.max}</text>`;
+  return { viewBox: `0 0 ${w} ${h}`, svg: g };
+}
+export function histSVG(buckets, { w = 640 } = {}) {
+  if (!buckets.length) return null;
+  const h = 200, pad = 44, max = Math.max(1, ...buckets.map(b => b.count));
+  const bw = (w - pad * 2) / buckets.length;
+  const y = v => h - 28 - (h - 50) * v / max;
+  let g = '';
+  buckets.forEach((b, i) => {
+    const x = pad + i * bw;
+    g += `<rect class="hb" data-lo="${b.lo}" x="${x + 1}" y="${y(b.count)}" width="${Math.max(1, bw - 2)}" height="${y(0) - y(b.count)}" fill="#4fb3ff"><title>${b.lo}–${b.hi} d: ${b.count}</title></rect>`;
+    const lab = b.hi === Infinity ? `${b.lo}+` : String(b.lo); if (i % Math.ceil(buckets.length / 8) === 0 || b.hi === Infinity) g += `<text x="${x + bw / 2}" y="${h - 10}" text-anchor="middle" fill="#8a96a8" font-size="10">${lab}</text>`;
+  });
+  g += `<text x="${w - pad}" y="16" text-anchor="end" fill="#8a96a8" font-size="11">days between flights</text>`;
+  return { viewBox: `0 0 ${w} ${h}`, svg: g };
+}

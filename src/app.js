@@ -135,8 +135,16 @@ document.addEventListener('keydown', e => {
 });
 $('drawer').addEventListener('close', () => history.replaceState(null, '', location.pathname + location.search));
 addEventListener('hashchange', () => { const s = L.serialFromHash(location.hash); if (s) open(s); });
-let rz, lastCW = CW().w; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { render(); if (CW().w !== lastCW) { lastCW = CW().w; trend(); years(); prog(); cmp(); fleet(); rate(); } }, 120); });
+let rz, lastCW = CW().w; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { render(); if (CW().w !== lastCW) { lastCW = CW().w; trend(); years(); prog(); cmp(); fleet(); rate(); heat(); hist(); } }, 120); });
 $('src').innerHTML = `Data: <a href="https://thespacedevs.com/llapi">The Space Devs Launch Library 2</a> — boosters snapshot ${d10(snap.fetched_at)}, flights snapshot ${d10(fsnap.fetched_at)}. Unofficial; not affiliated with SpaceX.`;
+function heat() {
+  const r = C.heatSVG(L.flightsByMonth(FL), CW()); if (!r) return;
+  $('heatsvg').setAttribute('viewBox', r.viewBox); $('heatsvg').innerHTML = r.svg;
+}
+function hist() {
+  const r = C.histSVG(L.turnaroundHistogram(FL, 10), CW()); if (!r) return;
+  $('histsvg').setAttribute('viewBox', r.viewBox); $('histsvg').innerHTML = r.svg;
+}
 function rate() {
   const r = C.rateSVG(L.landingSuccessByYear(FL), NOWY, CW()); if (!r) return;
   $('ratesvg').setAttribute('viewBox', r.viewBox); $('ratesvg').innerHTML = r.svg;
@@ -163,7 +171,7 @@ function stepBooster(dir) {
   open(rows[focusIdx].serial);
 }
 
-axis(); render(); recordsPanel(); trend(); years(); spots(); pads(); prog(); cmp(); fleet(); rate();
+axis(); render(); recordsPanel(); trend(); years(); spots(); pads(); prog(); cmp(); fleet(); rate(); heat(); hist();
 const lw = $('lanewrap'); if (lw.scrollWidth > lw.clientWidth) lw.scrollLeft = lw.scrollWidth; // newest years in view on narrow screens
 const deep = L.serialFromHash(location.hash); if (deep) open(deep);
 function tvCard(list, i) {
@@ -177,7 +185,7 @@ function tvCard(list, i) {
 }
 if (new URLSearchParams(location.search).get('mode') === 'tv') {
   const list = L.leaderboard(all, 10), ms = Math.max(2000, Number(new URLSearchParams(location.search).get('every')) || 8000); let i = 0;
-  document.body.classList.add('tv'); $('tv').hidden = false; tvCard(list, 0);
+  document.documentElement.classList.add('tv'); document.body.classList.add('tv'); $('tv').hidden = false; tvCard(list, 0);
   setInterval(() => { i = (i + 1) % list.length; tvCard(list, i); }, ms);
   document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') { i = (i + 1) % list.length; tvCard(list, i); } if (e.key === 'ArrowLeft') { i = (i + list.length - 1) % list.length; tvCard(list, i); } if (e.key === 'Escape') location.search = ''; });
 }
