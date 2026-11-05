@@ -283,3 +283,36 @@ export function serialsWithLandingType(flights, lt) {
   if (!lt || lt === 'all') return null;
   return new Set(flights.filter(f => landingType(f) === lt).map(f => f.serial));
 }
+// Share of boosters that reached at least N flights (reuse curve).
+export function reuseCurve(boosters) {
+  const max = Math.max(0, ...boosters.map(b => b.flights));
+  const out = [];
+  for (let n = 1; n <= max; n++) {
+    const reached = boosters.filter(b => b.flights >= n).length;
+    out.push({ n, reached, share: boosters.length ? reached / boosters.length : 0 });
+  }
+  return out;
+}
+export function heavyRole(flights, serial) {
+  const fh = flights.filter(f => f.serial === serial && f.rocket === 'Falcon Heavy');
+  if (!fh.length) return null;
+  // LL2 does not always tag side vs core on the flight; use details/heuristic via caller.
+  return { flights: fh.length, pads: [...new Set(fh.map(f => f.pad))] };
+}
+export function padCadence(flights) {
+  const pads = [...new Set(flights.map(f => f.pad || 'Unknown'))].sort();
+  const years = [...new Set(flights.map(f => +f.net.slice(0, 4)))].sort((a, b) => a - b);
+  const grid = Object.fromEntries(pads.map(p => [p, Object.fromEntries(years.map(y => [y, 0]))]));
+  for (const f of flights) grid[f.pad || 'Unknown'][+f.net.slice(0, 4)]++;
+  return { pads, years, grid };
+}
+export function recoveredShareByYear(flights) {
+  const by = {};
+  for (const f of flights) {
+    const y = +f.net.slice(0, 4);
+    const e = (by[y] ||= { year: y, total: 0, recovered: 0 });
+    e.total++;
+    if (f.landing_success) e.recovered++;
+  }
+  return Object.values(by).sort((a, b) => a.year - b.year).map(e => ({ ...e, share: e.total ? e.recovered / e.total : 0 }));
+}

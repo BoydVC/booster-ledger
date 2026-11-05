@@ -90,7 +90,7 @@ function open(s) {
   history.replaceState(null, '', '#' + s);
   $('detail').innerHTML = `<h2 id="dtitle">${esc(b.serial)}</h2><p>Status: <b>${esc(b.status)}</b> · ${esc(L.blockOf(b.details, b.serial))} · #${L.rankOf(all, b.serial)} of ${all.length} by flights${lr != null ? ` · ${Math.round(lr * 100)}% landings` : ''}</p>
   <p>${b.flights} flights · ${b.landings_ok}/${b.landings_attempted ?? '?'} landings · first ${d10(b.first)} · last ${d10(b.last)}${fpy ? ` · ${fpy.toFixed(1)} flights/yr` : ''}</p>
-  <p class="sub">${esc(b.details)}</p>
+  <p class="sub">${esc(b.details)}</p>${(() => { const hr = L.heavyRole(FL, b.serial); return hr ? `<p class="sub">Flew Falcon Heavy ${hr.flights}× · pads ${hr.pads.map(esc).join(', ')}</p>` : ''; })()}
   ${(() => { const g = L.gaps(fs); if (g.length < 2) return ''; return `<h3>Days between flights</h3><svg id="spark" viewBox="0 0 640 70" preserveAspectRatio="none"><polyline points="${C.sparkPoints(g)}" fill="none" stroke="#4fb3ff" stroke-width="2"/></svg><p class="sub">From ${Math.round(g[0].days)} days before flight 2 to ${Math.round(g.at(-1).days)} days before flight ${fs.length}; fastest ${Math.min(...g.map(x => x.days)).toFixed(1)}.</p>`; })()}${(() => { const r = C.timelineSVG(fs, { w: innerWidth < 700 ? 400 : 640 }); if (!r) return ''; return `<h3>Mission timeline</h3><svg id="tline" viewBox="${r.viewBox}" role="img" aria-label="mission timeline">${r.svg}</svg>`; })()}
   <h3>Where it landed</h3><p id="lb">${lb.map(x => `${esc(x.where)} ${x.success}/${x.attempts}`).join(' · ')}</p>
   <h3>Every flight</h3><div class="tl"><table><tr><th>#</th><th>Date</th><th>Mission</th><th>Landing</th></tr>${fs.map(f => `<tr${f.launch_status && f.launch_status !== 'Success' ? ` class="fail" title="Launch outcome: ${esc(f.launch_status)}"` : ''}><td>${f.n ?? ''}</td><td>${d10(f.net)}</td><td><a href="${safeUrl(f.source)}" target="_blank" rel="noopener">${esc(f.mission)}</a>${f.launch_status && f.launch_status !== 'Success' ? ' <span class="bad">(launch failure)</span>' : ''}${f.rocket === 'Falcon Heavy' ? ' <span class="sub">· Falcon Heavy</span>' : ''}</td><td class="${f.landing_success ? 'ok' : f.landing_attempt ? 'bad' : ''}">${f.landing_attempt ? esc(f.landing_loc || f.landing_type) + (f.landing_success ? ' ✓' : ' ✗') : 'expended'}</td></tr>`).join('')}</table></div>
@@ -140,8 +140,20 @@ document.addEventListener('keydown', e => {
 });
 $('drawer').addEventListener('close', () => history.replaceState(null, '', location.pathname + location.search));
 addEventListener('hashchange', () => { const s = L.serialFromHash(location.hash); if (s) open(s); });
-let rz, lastCW = CW().w; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { render(); if (CW().w !== lastCW) { lastCW = CW().w; trend(); years(); prog(); cmp(); fleet(); rate(); heat(); hist(); } }, 120); });
+let rz, lastCW = CW().w; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { render(); if (CW().w !== lastCW) { lastCW = CW().w; trend(); years(); prog(); cmp(); fleet(); rate(); heat(); hist(); reuse(); padsChart(); recoveredChart(); } }, 120); });
 $('src').innerHTML = `Data: <a href="https://thespacedevs.com/llapi">The Space Devs Launch Library 2</a> — boosters snapshot ${d10(snap.fetched_at)}, flights snapshot ${d10(fsnap.fetched_at)}. Unofficial; not affiliated with SpaceX.`;
+function padsChart() {
+  const r = C.padSVG(L.padCadence(FL), NOWY, CW()); if (!r) return;
+  $('padsvg').setAttribute('viewBox', r.viewBox); $('padsvg').innerHTML = r.svg;
+}
+function recoveredChart() {
+  const r = C.recoveredSVG(L.recoveredShareByYear(FL), NOWY, CW()); if (!r) return;
+  $('recoveredsvg').setAttribute('viewBox', r.viewBox); $('recoveredsvg').innerHTML = r.svg;
+}
+function reuse() {
+  const r = C.reuseSVG(L.reuseCurve(all), CW()); if (!r) return;
+  $('reusesvg').setAttribute('viewBox', r.viewBox); $('reusesvg').innerHTML = r.svg;
+}
 function heat() {
   const r = C.heatSVG(L.flightsByMonth(FL), CW()); if (!r) return;
   $('heatsvg').setAttribute('viewBox', r.viewBox); $('heatsvg').innerHTML = r.svg;
@@ -177,7 +189,7 @@ function stepBooster(dir) {
   open(rows[focusIdx].serial);
 }
 
-if (st.y != null && st.y >= Y0 && st.y <= Y1) { /* applied after scrubber init below */ } axis(); render(); recordsPanel(); trend(); years(); spots(); pads(); prog(); cmp(); fleet(); rate(); heat(); hist();
+if (st.y != null && st.y >= Y0 && st.y <= Y1) { /* applied after scrubber init below */ } axis(); render(); recordsPanel(); trend(); years(); spots(); pads(); prog(); cmp(); fleet(); rate(); heat(); hist(); reuse(); padsChart(); recoveredChart();
 const lw = $('lanewrap'); if (lw.scrollWidth > lw.clientWidth) lw.scrollLeft = lw.scrollWidth; // newest years in view on narrow screens
 const deep = L.serialFromHash(location.hash); if (deep) open(deep);
 function tvCard(list, i) {

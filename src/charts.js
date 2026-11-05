@@ -137,3 +137,50 @@ export function histSVG(buckets, { w = 640 } = {}) {
   g += `<text x="${w - pad}" y="16" text-anchor="end" fill="#8a96a8" font-size="11">days between flights</text>`;
   return { viewBox: `0 0 ${w} ${h}`, svg: g };
 }
+export function reuseSVG(curve, { w = 640 } = {}) {
+  if (!curve.length) return null;
+  const h = 220, pad = 44, maxN = curve.at(-1).n;
+  const x = n => pad + (w - pad * 2) * (n - 1) / Math.max(1, maxN - 1);
+  const y = v => h - 30 - (h - 60) * v;
+  let g = '';
+  for (const v of [0, .25, .5, .75, 1]) g += `<line x1="${pad}" x2="${w - pad}" y1="${y(v)}" y2="${y(v)}" stroke="#1e2838"/><text x="4" y="${y(v) + 4}" fill="#8a96a8" font-size="11">${Math.round(v * 100)}%</text>`;
+  g += `<path d="${curve.map((p, i) => `${i ? 'L' : 'M'}${x(p.n).toFixed(1)},${y(p.share).toFixed(1)}`).join('')}L${x(maxN).toFixed(1)},${y(0).toFixed(1)}L${x(1).toFixed(1)},${y(0).toFixed(1)}Z" fill="rgba(79,179,255,.15)" stroke="none"/>`;
+  g += `<polyline fill="none" stroke="#4fb3ff" stroke-width="3" points="${curve.map(p => `${x(p.n)},${y(p.share)}`).join(' ')}"/>`;
+  for (const n of [1, 5, 10, 20, 30].filter(n => n <= maxN)) g += `<text x="${x(n)}" y="${h - 10}" text-anchor="middle" fill="#8a96a8" font-size="11">${n}</text>`;
+  g += `<text x="${w - pad}" y="16" text-anchor="end" fill="#8a96a8" font-size="11">share of boosters reaching ≥ N flights</text>`;
+  const at10 = curve.find(p => p.n === 10), at20 = curve.find(p => p.n === 20);
+  if (at10) g += `<text x="${pad}" y="18" fill="#e8edf5" font-size="12" data-n10="${at10.reached}">≥10: ${at10.reached} (${Math.round(at10.share * 100)}%)</text>`;
+  if (at20) g += `<text x="${pad + 160}" y="18" fill="#e8edf5" font-size="12" data-n20="${at20.reached}">≥20: ${at20.reached} (${Math.round(at20.share * 100)}%)</text>`;
+  return { viewBox: `0 0 ${w} ${h}`, svg: g };
+}
+export function padSVG(cadence, nowYear, { w = 640 } = {}) {
+  const { pads, years, grid } = cadence;
+  if (!pads.length) return null;
+  // Top 4 pads by total
+  const ranked = [...pads].sort((a, b) => years.reduce((s, y) => s + grid[b][y], 0) - years.reduce((s, y) => s + grid[a][y], 0)).slice(0, 4);
+  const short = w < 500;
+  const h = 240, pad = 44, max = Math.max(1, ...ranked.flatMap(p => years.map(y => grid[p][y])));
+  const cols = ['#4fb3ff', '#ffc94f', '#5fd38d', '#b48cff'];
+  const x = i => pad + (w - pad * 2) * (years.length < 2 ? .5 : i / (years.length - 1));
+  const y = v => h - 30 - (h - 70) * v / max;
+  let g = '';
+  for (let v = 0; v <= max; v += Math.ceil(max / 5) || 1) g += `<line x1="${pad}" x2="${w - pad}" y1="${y(v)}" y2="${y(v)}" stroke="#1e2838"/><text x="4" y="${y(v) + 4}" fill="#8a96a8" font-size="11">${v}</text>`;
+  ranked.forEach((p, pi) => {
+    g += `<polyline fill="none" stroke="${cols[pi]}" stroke-width="2.5" points="${years.map((yy, i) => `${x(i)},${y(grid[p][yy])}`).join(' ')}"/>`;
+    g += `<text x="${pad + pi * (short ? 90 : 140)}" y="16" fill="${cols[pi]}" font-size="11">${esc(short ? p.replace(/Launch Complex /, 'LC-').replace(/Space Launch Complex /, 'SLC-') : p)}</text>`;
+  });
+  years.forEach((yy, i) => { if (i % Math.ceil(years.length / 8) === 0 || i === years.length - 1) g += `<text x="${x(i)}" y="${h - 10}" text-anchor="middle" fill="#8a96a8" font-size="11">${yl(yy, short)}${ytd(yy, nowYear)}</text>`; });
+  return { viewBox: `0 0 ${w} ${h}`, svg: g };
+}
+export function recoveredSVG(series, nowYear, { w = 640 } = {}) {
+  if (!series.length) return null;
+  const short = w < 500;
+  const h = 200, pad = 44;
+  const x = i => pad + (w - pad * 2) * (series.length < 2 ? .5 : i / (series.length - 1));
+  const y = v => h - 30 - (h - 60) * v;
+  let g = '';
+  for (const v of [0, .25, .5, .75, 1]) g += `<line x1="${pad}" x2="${w - pad}" y1="${y(v)}" y2="${y(v)}" stroke="#1e2838"/><text x="4" y="${y(v) + 4}" fill="#8a96a8" font-size="11">${Math.round(v * 100)}%</text>`;
+  g += `<polyline fill="none" stroke="#5fd38d" stroke-width="3" points="${series.map((p, i) => `${x(i)},${y(p.share)}`).join(' ')}"/>`;
+  series.forEach((p, i) => g += `<g data-y="${p.year}"><circle cx="${x(i)}" cy="${y(p.share)}" r="3" fill="#5fd38d"><title>${p.year}: ${Math.round(p.share * 100)}% recovered (${p.recovered}/${p.total})</title></circle><text x="${x(i)}" y="${h - 10}" text-anchor="middle" fill="#8a96a8" font-size="11">${yl(p.year, short)}${ytd(p.year, nowYear)}</text></g>`);
+  return { viewBox: `0 0 ${w} ${h}`, svg: g };
+}
