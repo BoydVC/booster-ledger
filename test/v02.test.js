@@ -23,3 +23,8 @@ describe('serialFromHash', () => {
   it('parses', () => expect(L.serialFromHash('#b1067')).toBe('B1067'));
   it('rejects junk', () => { expect(L.serialFromHash('#<script>')).toBeNull(); expect(L.serialFromHash('')).toBeNull(); });
 });
+describe('mutation-hardening', () => {
+  it('leaderboard[0] is the max-flight booster', () => expect(L.leaderboard(all, 3)[0].flights).toBe(Math.max(...all.map(b => b.flights))));
+  it('leaderboard strictly not ascending on real data', () => { const t = L.leaderboard(all); expect(t[0].flights).toBeGreaterThan(t.at(-1).flights - 1); expect(t[0].flights).toBeGreaterThan(1); });
+  it('serialFromHash only accepts B10xx', () => { expect(L.serialFromHash('#B9999')).toBeNull(); expect(L.serialFromHash('#B10671')).toBeNull(); expect(L.serialFromHash('#B1')).toBeNull(); });
+});

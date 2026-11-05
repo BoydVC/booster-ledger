@@ -7,3 +7,4 @@ it('detects a landing mismatch', () => { const f2 = F.map((f, i) => i === 0 ? { 
 it('detects orphan flights', () => expect(validate(B, [...F, { ...F[0], serial: 'B1999' }]).join()).toMatch(/B1999/));
 it('detects bad source', () => expect(validate([{ ...B[0], source: 'http://evil' }], F.filter(f => f.serial === B[0].serial)).join()).toMatch(/bad source/));
 it('empty inputs', () => expect(validate([], [])).toEqual(['no boosters', 'no flights']));
+// Mutation check is run separately: `node scripts-mutation.mjs` (10/10 mutants must be killed).
