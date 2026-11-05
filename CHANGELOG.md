@@ -2,7 +2,7 @@
 
 ## 0.2.0 — 2026-11-05 (draft PR #1)
 
-TokenMax final-day burn rounds 17–38 on branch `v0.2`.
+TokenMax final-day burn rounds 17–39 on branch `v0.2`.
 
 ### Added
 - Cumulative fleet flights chart; `?` keyboard help dialog
@@ -17,6 +17,7 @@ TokenMax final-day burn rounds 17–38 on branch `v0.2`.
 - Mutation suite (18 mutants) and deep DOM-vs-raw number tests
 
 ### Fixed
+- Empty filters show Clear filters; skip link; focus-visible rings; snapshot badge (r39)
 - Phone: TOC starts collapsed, keyboard hint hidden, tighter controls (r38)
 - Playwright / shots / mutation honor `PORT` (default 4477); mutation never `fuser`-kills an unrelated listener
 - Interrupted mutation no longer leaves `server.js` path guard disabled

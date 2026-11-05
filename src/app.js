@@ -103,17 +103,24 @@ function open(s) {
   <p class="sub">${esc(b.details)}</p>${(() => { const hr = L.heavyRole(FL, b.serial); return hr ? `<p class="sub">Flew Falcon Heavy ${hr.flights}× · pads ${hr.pads.map(esc).join(', ')}</p>` : ''; })()}
   ${(() => { const g = L.gaps(fs); if (g.length < 2) return ''; return `<h3>Days between flights</h3><svg id="spark" viewBox="0 0 640 70" preserveAspectRatio="none"><polyline points="${C.sparkPoints(g)}" fill="none" stroke="#4fb3ff" stroke-width="2"/></svg><p class="sub">From ${Math.round(g[0].days)} days before flight 2 to ${Math.round(g.at(-1).days)} days before flight ${fs.length}; fastest ${Math.min(...g.map(x => x.days)).toFixed(1)}.</p>`; })()}${(() => { const r = C.timelineSVG(fs, { w: innerWidth < 700 ? 400 : 640 }); if (!r) return ''; return `<h3>Mission timeline</h3><svg id="tline" viewBox="${r.viewBox}" role="img" aria-label="mission timeline">${r.svg}</svg>`; })()}
   <h3>Where it landed</h3><p id="lb">${lb.map(x => `${esc(x.where)} ${x.success}/${x.attempts}`).join(' · ')}</p>
-  <h3>Every flight</h3><div class="tl"><table><tr><th>#</th><th>Date</th><th>Mission</th><th>Landing</th></tr>${fs.map(f => `<tr${f.launch_status && f.launch_status !== 'Success' ? ` class="fail" title="Launch outcome: ${esc(f.launch_status)}"` : ''}><td>${f.n ?? ''}</td><td>${d10(f.net)}</td><td><a href="${safeUrl(f.source)}" target="_blank" rel="noopener">${esc(f.mission)}</a>${f.launch_status && f.launch_status !== 'Success' ? ' <span class="bad">(launch failure)</span>' : ''}${f.rocket === 'Falcon Heavy' ? ' <span class="sub">· Falcon Heavy</span>' : ''}</td><td class="${f.landing_success ? 'ok' : f.landing_attempt ? 'bad' : ''}">${f.landing_attempt ? esc(f.landing_loc || f.landing_type) + (f.landing_success ? ' ✓' : ' ✗') : 'expended'}</td></tr>`).join('')}</table></div>
+  <h3>Every flight <button type="button" id="dfcsv" class="mini">⬇ CSV</button></h3><div class="tl"><table><tr><th>#</th><th>Date</th><th>Mission</th><th>Landing</th></tr>${fs.map(f => `<tr${f.launch_status && f.launch_status !== 'Success' ? ` class="fail" title="Launch outcome: ${esc(f.launch_status)}"` : ''}><td>${f.n ?? ''}</td><td>${d10(f.net)}</td><td><a href="${safeUrl(f.source)}" target="_blank" rel="noopener">${esc(f.mission)}</a>${f.launch_status && f.launch_status !== 'Success' ? ' <span class="bad">(launch failure)</span>' : ''}${f.rocket === 'Falcon Heavy' ? ' <span class="sub">· Falcon Heavy</span>' : ''}</td><td class="${f.landing_success ? 'ok' : f.landing_attempt ? 'bad' : ''}">${f.landing_attempt ? esc(f.landing_loc || f.landing_type) + (f.landing_success ? ' ✓' : ' ✗') : 'expended'}</td></tr>`).join('')}</table></div>
   <p><a href="${safeUrl(b.source)}" target="_blank" rel="noopener">Booster source record</a></p>`;
   if (!$('drawer').open) $('drawer').showModal();
   $('close').focus({ preventScroll: true }); $('drawer').scrollTop = 0;
+  const df = $('dfcsv'); if (df) df.onclick = () => {
+    const cols = ['n','net','mission','rocket','pad','landing_type','landing_loc','landing_success','launch_status','source'];
+    const rows = fs.map(f => Object.fromEntries(cols.map(c => [c, f[c] ?? ''])));
+    const blob = new Blob([L.toCSV(rows, cols)], { type: 'text/csv' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = b.serial + '-flights.csv'; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
 }
 function current() {
   let bs = L.filterWithMissions(all, FL, { q: $('q').value, status: $('status').value }).filter(b => !$('fh').checked || HEAVY.has(b.serial));
   const lt = $('lt').value; if (lt && lt !== 'all') { const keep = L.serialsWithLandingType(FL, lt); bs = bs.filter(b => keep.has(b.serial)); }
   return bs;
 }
-function render() { const bs = L.asOf(current(), FL, cutoff); stats(bs); fate(bs); lanes(bs); lists(bs); const mn = $('matchn'); if (mn) mn.textContent = `${bs.length} shown`; }
+function render() { const bs = L.asOf(current(), FL, cutoff); stats(bs); fate(bs); lanes(bs); lists(bs); const mn = $('matchn'); if (mn) mn.textContent = `${bs.length} shown`; const em = $('empty'), lw = $('lanewrap'); if (em) { if (!bs.length) { em.hidden = false; em.innerHTML = `No boosters match these filters. <button type="button" id="clearf">Clear filters</button>`; if (lw) lw.hidden = true; const b = $('clearf'); if (b) b.onclick = () => { $('status').value = 'all'; $('lt').value = 'all'; $('fh').checked = false; $('q').value = ''; document.querySelectorAll('#quick button').forEach(x => x.removeAttribute('aria-pressed')); render(); syncUrl(); }; } else { em.hidden = true; em.textContent = ''; if (lw) lw.hidden = false; } } }
 for (const k of Object.keys(L.statusCounts(all))) $('status').insertAdjacentHTML('beforeend', `<option value="${esc(k)}">${esc(k)}</option>`);
 const opts = L.sortBy(all, 'flights').map(b => `<option>${esc(b.serial)}</option>`).join('');
 $('ca').innerHTML = $('cb').innerHTML = opts; $('ca').selectedIndex = 0; $('cb').selectedIndex = 1;
@@ -170,6 +177,7 @@ document.addEventListener('keydown', e => {
 $('drawer').addEventListener('close', () => history.replaceState(null, '', location.pathname + location.search));
 addEventListener('hashchange', () => { const s = L.serialFromHash(location.hash); if (s) open(s); });
 let rz, lastCW = CW().w; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { render(); if (CW().w !== lastCW) { lastCW = CW().w; trend(); years(); prog(); cmp(); cumFleet(); fleet(); matrixChart(); rate(); heat(); hist(); reuse(); padsChart(); recoveredChart(); } }, 120); });
+(() => { let b = $('snapbadge'); if (!b) { b = document.createElement('p'); b.id = 'snapbadge'; $('stats').after(b); } b.textContent = `Snapshot ${d10(snap.fetched_at)} · Launch Library 2`; })();
 $('src').innerHTML = `Data: <a href="https://thespacedevs.com/llapi">The Space Devs Launch Library 2</a> — boosters snapshot ${d10(snap.fetched_at)}, flights snapshot ${d10(fsnap.fetched_at)}. Unofficial; not affiliated with SpaceX.`;
 function padsChart() {
   const r = C.padSVG(L.padCadence(FL), NOWY, CW()); if (!r) return;
