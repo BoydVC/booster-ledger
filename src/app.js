@@ -121,7 +121,7 @@ function current() {
   const lt = $('lt').value; if (lt && lt !== 'all') { const keep = L.serialsWithLandingType(FL, lt); bs = bs.filter(b => keep.has(b.serial)); }
   return bs;
 }
-function render() { const bs = L.asOf(current(), FL, cutoff); stats(bs); fate(bs); lanes(bs); lists(bs); const mn = $('matchn'); if (mn) mn.textContent = `${bs.length} shown`; const em = $('empty'), lw = $('lanewrap'); if (em) { if (!bs.length) { em.hidden = false; em.innerHTML = `No boosters match these filters. <button type="button" id="clearf">Clear filters</button>`; if (lw) lw.hidden = true; const b = $('clearf'); if (b) b.onclick = () => { $('status').value = 'all'; $('lt').value = 'all'; $('fh').checked = false; $('q').value = ''; document.querySelectorAll('#quick button').forEach(x => x.removeAttribute('aria-pressed')); render(); syncUrl(); }; } else { em.hidden = true; em.textContent = ''; if (lw) lw.hidden = false; } } }
+function render() { const bs = L.asOf(current(), FL, cutoff); stats(bs); fate(bs); lanes(bs); lists(bs); const mn = $('matchn'); if (mn) mn.textContent = `${bs.length} shown`; const em = $('empty'), lw = $('lanewrap'); if (em) { if (!bs.length) { em.hidden = false; em.innerHTML = `No boosters match these filters. <button type="button" id="clearf">Clear filters</button>`; if (lw) lw.hidden = true; const b = $('clearf'); if (b) b.onclick = () => { $('status').value = 'all'; $('lt').value = 'all'; $('fh').checked = false; $('q').value = ''; document.querySelectorAll('#quick button').forEach(x => x.removeAttribute('aria-pressed')); render(); syncUrl(); }; } else { em.hidden = true; em.textContent = ''; if (lw) lw.hidden = false; } } syncQuick(); }
 for (const k of Object.keys(L.statusCounts(all))) $('status').insertAdjacentHTML('beforeend', `<option value="${esc(k)}">${esc(k)}</option>`);
 const opts = L.sortBy(all, 'flights').map(b => `<option>${esc(b.serial)}</option>`).join('');
 $('ca').innerHTML = $('cb').innerHTML = opts; $('ca').selectedIndex = 0; $('cb').selectedIndex = 1;
@@ -131,6 +131,14 @@ if (st.a) $('ca').value = st.a; if (st.b) $('cb').value = st.b;
 $('ca').onchange = $('cb').onchange = () => { cmp(); syncUrl(); };
 $('q').oninput = $('status').onchange = $('sort').onchange = $('fh').onchange = $('lt').onchange = () => { render(); syncUrl(); };
 $('quick')?.querySelectorAll('button').forEach(btn => btn.onclick = () => { $('status').value = btn.dataset.st; render(); syncUrl(); });
+function syncQuick() {
+  const st = $('status').value;
+  $('quick')?.querySelectorAll('button').forEach(btn => {
+    const on = btn.dataset.st === st || (btn.dataset.st === 'all' && st === 'all');
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+
 $('csv').onclick = () => { const cols = ['serial', 'status', 'flights', 'landings_ok', 'landings_attempted', 'first', 'last', 'source']; const blob = new Blob([L.toCSV(L.sortBy(current(), $('sort').value), cols)], { type: 'text/csv' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'booster-ledger.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); };
 $('fcsv') && ($('fcsv').onclick = () => {
   const keep = new Set(current().map(b => b.serial));
