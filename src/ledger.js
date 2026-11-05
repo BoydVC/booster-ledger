@@ -156,3 +156,5 @@ export function serializeState(s) {
   if (s.a) p.set('a', s.a); if (s.b) p.set('b', s.b);
   const q = p.toString(); return q ? '?' + q : '';
 }
+
+export function launchFailures(flights) { return flights.filter(f => f.launch_status && f.launch_status !== 'Success'); }

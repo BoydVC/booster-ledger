@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 const go = async p => { await p.goto('/'); await p.waitForSelector('body[data-ready="1"]'); };
-test('records panel has 4 cards with source links', async ({ page }) => { await go(page); await expect(page.locator('#records > div')).toHaveCount(4); await expect(page.locator('#rec-first a')).toHaveAttribute('href', /thespacedevs/); });
+test('records panel has 5 cards with source links', async ({ page }) => { await go(page); await expect(page.locator('#records > div')).toHaveCount(5); await expect(page.locator('#rec-first a')).toHaveAttribute('href', /thespacedevs/); });
 test('trend chart has a point per year', async ({ page }) => { await go(page); expect(await page.locator('#trendsvg .pt').count()).toBeGreaterThan(5); });
 test('compare table updates', async ({ page }) => { await go(page); await page.selectOption('#cb', 'B1058'); await expect(page.locator('#ctable th').nth(2)).toHaveText('B1058'); await expect(page.locator('#ctable tr[data-k="status"] td').nth(1)).toHaveText('lost'); });
 test('drawer has full flight timeline', async ({ page }) => { await page.goto('/?a#B1067'); await expect(page.locator('.tl tr')).toHaveCount(38); await expect(page.locator('#lb')).toContainText('/'); });

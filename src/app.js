@@ -50,6 +50,7 @@ function recordsPanel() {
     r.firstReflight && `<div id="rec-first"><b>First reflight</b><br>${esc(r.firstReflight.serial)} on ${d10(r.firstReflight.net)} · ${a(r.firstReflight.source, r.firstReflight.mission)}</div>`,
     r.fastestTurnaround && `<div id="rec-fast"><b>Fastest turnaround</b><br>${esc(r.fastestTurnaround.serial)}: ${r.fastestTurnaround.days.toFixed(1)} days, before ${a(r.fastestTurnaround.source, r.fastestTurnaround.mission)}</div>`,
     r.mostFlights && `<div id="rec-most"><b>Most flights</b><br>${esc(r.mostFlights.serial)}: ${r.mostFlights.flights} · <a href="${safeUrl(r.mostFlights.source)}" target="_blank" rel="noopener">record</a></div>`,
+    (() => { const lf = L.launchFailures(FL); return lf.length ? `<div id="rec-fail"><b>Launch failures</b><br>${lf.map(f => `${esc(f.serial)} · ${a(f.source, f.mission)}`).join('<br>')}</div>` : ''; })(),
     r.busiestDroneship && `<div id="rec-ds"><b>Busiest droneship</b><br>${esc(r.busiestDroneship.name)}: ${r.busiestDroneship.success}/${r.busiestDroneship.attempts} landings</div>`,
   ].filter(Boolean).join('');
 }
@@ -94,11 +95,11 @@ function open(s) {
   const b = all.find(x => x.serial === s); if (!b) return;
   const fs = L.flightsFor(FL, s), lr = L.landingRate(b), fpy = L.flightsPerYear(b), lb = L.landingBreakdown(fs);
   history.replaceState(null, '', '#' + s);
-  $('detail').innerHTML = `<h2>${esc(b.serial)}</h2><p>Status: <b>${esc(b.status)}</b> · #${L.rankOf(all, b.serial)} of ${all.length} by flights${lr != null ? ` · ${Math.round(lr * 100)}% landings` : ''}</p>
+  $('detail').innerHTML = `<h2 id="dtitle">${esc(b.serial)}</h2><p>Status: <b>${esc(b.status)}</b> · #${L.rankOf(all, b.serial)} of ${all.length} by flights${lr != null ? ` · ${Math.round(lr * 100)}% landings` : ''}</p>
   <p>${b.flights} flights · ${b.landings_ok}/${b.landings_attempted ?? '?'} landings · first ${d10(b.first)} · last ${d10(b.last)}${fpy ? ` · ${fpy.toFixed(1)} flights/yr` : ''}</p>
   <p class="sub">${esc(b.details)}</p>
   <h3>Where it landed</h3><p id="lb">${lb.map(x => `${esc(x.where)} ${x.success}/${x.attempts}`).join(' · ')}</p>
-  <h3>Every flight</h3><div class="tl"><table><tr><th>#</th><th>Date</th><th>Mission</th><th>Landing</th></tr>${fs.map(f => `<tr><td>${f.n ?? ''}</td><td>${d10(f.net)}</td><td><a href="${safeUrl(f.source)}" target="_blank" rel="noopener">${esc(f.mission)}</a></td><td class="${f.landing_success ? 'ok' : f.landing_attempt ? 'bad' : ''}">${f.landing_attempt ? esc(f.landing_loc || f.landing_type) + (f.landing_success ? ' ✓' : ' ✗') : 'expended'}</td></tr>`).join('')}</table></div>
+  <h3>Every flight</h3><div class="tl"><table><tr><th>#</th><th>Date</th><th>Mission</th><th>Landing</th></tr>${fs.map(f => `<tr${f.launch_status && f.launch_status !== 'Success' ? ` class="fail" title="Launch outcome: ${esc(f.launch_status)}"` : ''}><td>${f.n ?? ''}</td><td>${d10(f.net)}</td><td><a href="${safeUrl(f.source)}" target="_blank" rel="noopener">${esc(f.mission)}</a>${f.launch_status && f.launch_status !== 'Success' ? ' <span class="bad">(launch failure)</span>' : ''}</td><td class="${f.landing_success ? 'ok' : f.landing_attempt ? 'bad' : ''}">${f.landing_attempt ? esc(f.landing_loc || f.landing_type) + (f.landing_success ? ' ✓' : ' ✗') : 'expended'}</td></tr>`).join('')}</table></div>
   <p><a href="${safeUrl(b.source)}" target="_blank" rel="noopener">Booster source record</a></p>`;
   if (!$('drawer').open) $('drawer').showModal();
 }
@@ -115,7 +116,7 @@ $('share').onclick = async () => { syncUrl(); try { await navigator.clipboard.wr
 let playing = false;
 $('play').onclick = async () => {
   if (playing) return; playing = true; $('play').disabled = true;
-  for (let y = Y0; y <= Y1; y++) { cutoff = Date.UTC(y + 1, 0); $('year').textContent = `${y} · ${L.activeAt(all, cutoff).length} flying`; render(); await new Promise(r => setTimeout(r, 450)); }
+  for (let y = Y0; y <= Y1; y++) { cutoff = Date.UTC(y + 1, 0); $('year').textContent = `${y} · ${L.activeAt(L.filter(all, { q: $('q').value, status: $('status').value }), cutoff).length} flying`; render(); await new Promise(r => setTimeout(r, 450)); }
   cutoff = Infinity; $('year').textContent = ''; render(); playing = false; $('play').disabled = false;
 };
 document.addEventListener('keydown', e => {

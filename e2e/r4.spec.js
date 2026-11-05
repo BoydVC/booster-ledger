@@ -1,0 +1,6 @@
+import { test, expect } from '@playwright/test';
+test('drawer marks launch failure', async ({ page }) => { await page.goto('/?x#B1018'); await page.waitForSelector('#drawer[open]'); await expect(page.locator('.tl tr.fail')).toHaveCount(1); await expect(page.locator('.tl tr.fail')).toContainText('CRS-7'); });
+test('records list launch failures with sources', async ({ page }) => { await page.goto('/'); await expect(page.locator('#rec-fail a')).toHaveCount(3); });
+test('dialog is labelled', async ({ page }) => { await page.goto('/?x#B1067'); await expect(page.getByRole('dialog', { name: 'B1067' })).toBeVisible(); });
+test('replay count respects filter', async ({ page }) => { await page.goto('/?status=lost'); await page.waitForSelector('body[data-ready="1"]'); await page.click('#play'); await page.waitForTimeout(5000); const t = await page.locator('#year').textContent(); const n = +(t.match(/(\d+) flying/) || [0, 999])[1]; expect(n).toBeLessThanOrEqual(26); });
+test('lanes keyboard: Tab to a bar and Enter opens', async ({ page }) => { await page.goto('/'); await page.waitForSelector('body[data-ready="1"]'); await page.locator('.lane').first().focus(); await page.keyboard.press('Enter'); await expect(page.locator('#drawer')).toBeVisible(); });
