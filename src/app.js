@@ -66,10 +66,12 @@ function trend() { const r = C.trendSVG(L.turnaroundByYear(FL), NOWY, CW()); $('
 function cmpChart(sa, sb) { const r = C.cmpSVG(L.cumulative(FL, sa), L.cumulative(FL, sb), sa, sb, CW()); if (!r) return; $('cmpsvg').setAttribute('viewBox', r.viewBox); $('cmpsvg').innerHTML = r.svg; }
 function cmp() {
   const [a, b] = L.compare(all, FL, $('ca').value, $('cb').value); if (!a || !b) return; cmpChart(a.serial, b.serial);
-  const rows = [['Status', 'status'], ['Block', '_block'], ['Flights', 'flights'], ['Landings', 'landings'], ['First flight', 'first', d10], ['Last flight', 'last', d10],
+  const rows = [['Status', 'status'], ['Block', '_block'], ['Flights', 'flights'], ['Landings', 'landings'], ['Landing rate', '_rate'], ['First flight', 'first', d10], ['Last flight', 'last', d10],
     ['Median turnaround', 'medianGap', v => v == null ? '—' : v.toFixed(1) + ' d'], ['Fastest turnaround', 'fastestGap', v => v == null ? '—' : v.toFixed(1) + ' d'], ['Most-used landing spot', 'topSpot']];
   const block = s => L.blockOf(all.find(x => x.serial === s)?.details, s);
   a._block = block(a.serial); b._block = block(b.serial);
+  a._rate = (() => { const r = L.landingRate(all.find(x => x.serial === a.serial)); return r == null ? '—' : Math.round(r * 100) + '%'; })();
+  b._rate = (() => { const r = L.landingRate(all.find(x => x.serial === b.serial)); return r == null ? '—' : Math.round(r * 100) + '%'; })();
   const lbA = L.landingBreakdown(L.flightsFor(FL, a.serial)), lbB = L.landingBreakdown(L.flightsFor(FL, b.serial));
   const spots = [...new Set([...lbA, ...lbB].map(x => x.where))].slice(0, 8);
   $('ctable').innerHTML = `<tr><th></th><th>${esc(a.serial)}</th><th>${esc(b.serial)}</th></tr>` + rows.map(([k, f, fmt = v => v ?? '—']) => `<tr data-k="${f}"><th>${k}</th><td>${esc(fmt(a[f]))}</td><td>${esc(fmt(b[f]))}</td></tr>`).join('')
@@ -236,13 +238,15 @@ function fleet() {
   $('blocks').textContent = L.blockCounts(all).map(x => `${x.block} ${x.count}`).join(' · ');
 }
 function setCutoffYear(y) {
-  if (y == null || y > Y1) { cutoff = Infinity; $('year').textContent = ''; $('scrub').value = String(Y1 - Y0 + 1); }
-  else { cutoff = Date.UTC(y + 1, 0); $('year').textContent = `${y}`; $('scrub').value = String(y - Y0); }
+  if (y == null || y > Y1) { cutoff = Infinity; $('scrub').value = String(Y1 - Y0 + 1); }
+  else { cutoff = Date.UTC(y + 1, 0); $('scrub').value = String(y - Y0); }
   render();
+  const flying = L.activeAt(current(), cutoff).length;
+  $('year').textContent = (y == null || y > Y1) ? `now · ${flying} flying` : `${y} · ${flying} flying`;
 }
 $('scrub').min = '0'; $('scrub').max = String(Y1 - Y0 + 1); $('scrub').value = String(Y1 - Y0 + 1);
 $('scrub').oninput = () => { const v = +$('scrub').value; setCutoffYear(v > Y1 - Y0 ? null : Y0 + v); };
-if (st.y != null && st.y >= Y0 && st.y <= Y1) setCutoffYear(st.y);
+if (st.y != null && st.y >= Y0 && st.y <= Y1) setCutoffYear(st.y); else setCutoffYear(null);
 
 let focusIdx = 0;
 function ordered() { return L.sortBy(current(), $('sort').value); }

@@ -2,7 +2,7 @@
 
 ## 0.2.0 — 2026-11-05 (draft PR #1)
 
-TokenMax final-day burn rounds 17–55 on branch `v0.2`.
+TokenMax final-day burn rounds 17–57 on branch `v0.2`.
 
 ### Added
 - `r` opens a random active booster (`?seed=` for tests)
@@ -20,6 +20,7 @@ TokenMax final-day burn rounds 17–55 on branch `v0.2`.
 - Mutation suite (18 mutants) and deep DOM-vs-raw number tests
 
 ### Fixed
+- Year scrubber always shows flying count (r56)
 - DOM-vs-raw records panel (r54); `?status=` restores quick chip (r55)
 - Property tests for reuseCurve/recoveredShare/landingMatrix/heavy (r52); print CSS hides more chrome (r53)
 - Match count highlights gold when filters shrink the fleet (r50)

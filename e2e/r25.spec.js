@@ -20,7 +20,7 @@ test('fastest list respects as-of cutoff', async ({ page }) => {
   // Scrub to end of 2020 (Y0=2013 → index 7). Mutant that drops the flight-date cutoff
   // still filters boosters via asOf, but includes their later career gaps — list must differ.
   await page.locator('#scrub').evaluate(el => { el.value = '7'; el.dispatchEvent(new Event('input', { bubbles: true })); });
-  await expect(page.locator('#year')).toHaveText('2020');
+  await expect(page.locator('#year')).toHaveText(/^2020 · \d+ flying$/);
   const early = await page.locator('#fast button').allTextContents();
   expect(early.length).toBeGreaterThan(0);
   expect(early.join('|')).not.toBe(full.join('|'));
