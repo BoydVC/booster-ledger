@@ -5,12 +5,13 @@
 <section class="controls"><input id="q" placeholder="Search serial or mission" aria-label="search"><select id="status" aria-label="status"><option value="all">All statuses</option></select>
 <select id="sort" aria-label="sort"><option value="flights">Most flown</option><option value="first">First flight</option><option value="newest">Newest</option></select>
 <label class="chk"><input type="checkbox" id="fh"> Falcon Heavy only</label>
+<span id="quick" class="quick"><button type="button" data-st="active">Active</button><button type="button" data-st="expended">Expended</button><button type="button" data-st="all">All</button></span>
 <select id="lt" aria-label="landing type"><option value="all">Any landing type</option><option value="ASDS">ASDS (droneship)</option><option value="RTLS">RTLS (land)</option><option value="Ocean">Ocean</option><option value="EXP">Expended</option></select>
-<button id="csv" aria-label="CSV: download the boosters shown">⬇ CSV</button><button id="json" aria-label="JSON: download the boosters shown">{} JSON</button>
+<button id="csv" aria-label="⬇ CSV: download the boosters shown">⬇ CSV</button><button id="json" aria-label="{} JSON: download the boosters shown">{} JSON</button><button id="fcsv" aria-label="⬇ Flights CSV: download flights for boosters shown">⬇ Flights CSV</button>
 <button id="share" aria-label="Link: copy a link to this view">🔗 Link</button>
 <a id="tvlink" href="?mode=tv">📺 TV mode</a>
 <button id="play">▶ Replay the years</button>
-<label class="scrub">As of <input id="scrub" type="range" min="0" max="0" value="0" aria-label="Year scrubber"><span id="year" aria-live="polite"></span></label></section>
+<label class="scrub">As of year <input id="scrub" type="range" min="0" max="0" value="0"><span id="year" aria-live="polite"></span></label><span id="matchn" class="sub" aria-live="polite"></span></section>
 <main><section><h2>Lifelines</h2><div id="lanewrap"><svg id="axis" aria-hidden="true"></svg><svg id="lanes" role="group" aria-label="booster lifelines, one bar per booster; press Enter on a bar for details"></svg></div></section>
 <aside><h2>Records</h2><div id="records"></div><h2>Firsts</h2><div id="firsts"></div><h2>Most flown</h2><ol id="top"></ol><h2>Fastest turnaround</h2><ol id="fast"></ol></aside></main>
 <div id="panels"><section id="fleet"><h2>Active fleet over time</h2><p class="sub">Boosters that had flown by each year-end and had not yet flown their last (or are still active). Dashed line = all that had ever flown by then. * = year to date.</p><svg id="fleetsvg" role="img" aria-label="active fleet size by year"></svg><div id="blocks" class="legend"></div></section>

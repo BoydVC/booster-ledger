@@ -65,3 +65,5 @@ body.tv>*:not(#tv){display:none!important}html.tv,body.tv{padding:0;margin:0;ove
 #tocwrap[open] summary{color:var(--acc)}
 #toc{position:static;border:0;background:transparent;padding:6px 0 0;margin:0}
 @media (min-width:900px){#tocwrap{position:sticky}#tocwrap summary{display:none}#tocwrap nav{display:flex!important}#tocwrap{padding-top:0}}
+.quick{display:flex;gap:4px}.quick button{padding:6px 8px;font-size:12px}
+.quick button:hover,.quick button:focus-visible{border-color:var(--acc);color:var(--acc)}

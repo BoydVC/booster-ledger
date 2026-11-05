@@ -113,7 +113,7 @@ function current() {
   const lt = $('lt').value; if (lt && lt !== 'all') { const keep = L.serialsWithLandingType(FL, lt); bs = bs.filter(b => keep.has(b.serial)); }
   return bs;
 }
-function render() { const bs = L.asOf(current(), FL, cutoff); stats(bs); fate(bs); lanes(bs); lists(bs); }
+function render() { const bs = L.asOf(current(), FL, cutoff); stats(bs); fate(bs); lanes(bs); lists(bs); const mn = $('matchn'); if (mn) mn.textContent = `${bs.length} shown`; }
 for (const k of Object.keys(L.statusCounts(all))) $('status').insertAdjacentHTML('beforeend', `<option value="${esc(k)}">${esc(k)}</option>`);
 const opts = L.sortBy(all, 'flights').map(b => `<option>${esc(b.serial)}</option>`).join('');
 $('ca').innerHTML = $('cb').innerHTML = opts; $('ca').selectedIndex = 0; $('cb').selectedIndex = 1;
@@ -122,7 +122,15 @@ $('q').value = st.q; if ([...$('status').options].some(o => o.value === st.statu
 if (st.a) $('ca').value = st.a; if (st.b) $('cb').value = st.b;
 $('ca').onchange = $('cb').onchange = () => { cmp(); syncUrl(); };
 $('q').oninput = $('status').onchange = $('sort').onchange = $('fh').onchange = $('lt').onchange = () => { render(); syncUrl(); };
+$('quick')?.querySelectorAll('button').forEach(btn => btn.onclick = () => { $('status').value = btn.dataset.st; render(); syncUrl(); });
 $('csv').onclick = () => { const cols = ['serial', 'status', 'flights', 'landings_ok', 'landings_attempted', 'first', 'last', 'source']; const blob = new Blob([L.toCSV(L.sortBy(current(), $('sort').value), cols)], { type: 'text/csv' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'booster-ledger.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); };
+$('fcsv') && ($('fcsv').onclick = () => {
+  const keep = new Set(current().map(b => b.serial));
+  const rows = FL.filter(f => keep.has(f.serial));
+  const cols = ['serial','n','mission','net','launch_status','rocket','pad','landing_attempt','landing_success','landing_loc','landing_type','source'];
+  const blob = new Blob([L.toCSV(rows, cols)], { type: 'text/csv' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'booster-flights.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
 $('json').onclick = () => { const rows = L.sortBy(current(), $('sort').value).map(b => ({ serial: b.serial, status: b.status, block: L.blockOf(b.details, b.serial), flights: b.flights, landings_ok: b.landings_ok, landings_attempted: b.landings_attempted, first: b.first, last: b.last, source: b.source })); const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), boosters: rows }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'booster-ledger.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); };
 $('share').onclick = async () => { syncUrl(); try { await navigator.clipboard.writeText(location.href); $('share').textContent = '✓ Copied'; } catch { $('share').textContent = '✓ In address bar'; } setTimeout(() => $('share').textContent = '🔗 Link', 1500); }; $('close').onclick = () => $('drawer').close();
 let playing = false;
