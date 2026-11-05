@@ -148,12 +148,12 @@ export function spotsFleet(flights) {
 export function parseState(search, serials = []) {
   const p = new URLSearchParams(search || ''), ok = s => (s && serials.includes(s.toUpperCase())) ? s.toUpperCase() : null;
   const sort = p.get('sort'), status = p.get('status');
-  return { q: (p.get('q') || '').slice(0, 12), status: status && /^[a-z]+$/.test(status) ? status : 'all', sort: sort && Object.hasOwn(SORTS, sort) ? sort : 'flights', a: ok(p.get('a')), b: ok(p.get('b')) };
+  return { q: (p.get('q') || '').slice(0, 12), status: status && /^[a-z]+$/.test(status) ? status : 'all', sort: sort && Object.hasOwn(SORTS, sort) ? sort : 'flights', a: ok(p.get('a')), b: ok(p.get('b')), fh: p.get('fh') === '1' };
 }
 export function serializeState(s) {
   const p = new URLSearchParams();
   if (s.q) p.set('q', s.q); if (s.status && s.status !== 'all') p.set('status', s.status); if (s.sort && s.sort !== 'flights') p.set('sort', s.sort);
-  if (s.a) p.set('a', s.a); if (s.b) p.set('b', s.b);
+  if (s.fh) p.set('fh', '1'); if (s.a) p.set('a', s.a); if (s.b) p.set('b', s.b);
   const q = p.toString(); return q ? '?' + q : '';
 }
 
@@ -163,4 +163,13 @@ export function cumulative(flights, serial) {
 }
 export function linePath(points, xf, yf) {
   return points.map((p, i) => `${i ? 'L' : 'M'}${xf(p).toFixed(1)},${yf(p).toFixed(1)}`).join('');
+}
+export function countBy(flights, key) {
+  const c = {}; for (const f of flights) { const k = f[key] || 'Unknown'; c[k] = (c[k] || 0) + 1; }
+  return Object.entries(c).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([name, count]) => ({ name, count }));
+}
+export function heavyBoosters(flights) { return [...new Set(flights.filter(f => f.rocket === 'Falcon Heavy').map(f => f.serial))].sort(); }
+export function toCSV(rows, cols) {
+  const q = v => { const s = v == null ? '' : String(v); return /[",\n\r]/.test(s) || /^[=+\-@]/.test(s) ? '"' + (/^[=+\-@]/.test(s) ? "'" : '') + s.replace(/"/g, '""') + '"' : s; };
+  return [cols.join(','), ...rows.map(r => cols.map(c => q(r[c])).join(','))].join('\n') + '\n';
 }

@@ -1,6 +1,8 @@
 import * as L from './ledger.js';
-const [snap, fsnap] = await Promise.all(['boosters.json', 'flights.json'].map(async f => (await fetch(f)).json()));
-const all = L.load(snap), FL = fsnap.flights;
+let snap, fsnap;
+try { [snap, fsnap] = await Promise.all(['boosters.json', 'flights.json'].map(async f => { const r = await fetch(f); if (!r.ok) throw new Error(`${f}: HTTP ${r.status}`); return r.json(); })); }
+catch (e) { const el = document.getElementById('err'); el.hidden = false; el.textContent = `Couldn't load the data snapshot (${e.message}). Reload, or check that the server is running.`; document.body.dataset.ready = 'error'; throw e; }
+const all = L.load(snap), FL = fsnap.flights, HEAVY = new Set(L.heavyBoosters(FL));
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const safeUrl = u => /^https:\/\/ll\.thespacedevs\.com\//.test(u || '') ? u : '#';
@@ -95,11 +97,15 @@ function years() {
   g += Object.entries(TCOL).slice(0, 4).map(([k, c], i) => `<rect x="${pad + i * 80}" y="8" width="10" height="10" fill="${c}"/><text x="${pad + 14 + i * 80}" y="17" fill="#8a96a8" font-size="11">${k}</text>`).join('');
   $('yearsvg').setAttribute('viewBox', `0 0 ${w} ${h}`); $('yearsvg').innerHTML = g;
 }
+function pads() {
+  const row = (k, x) => `<tr data-${k}="${esc(x.name)}"><td>${esc(x.name)}</td><td>${x.count}</td></tr>`;
+  $('padtable').innerHTML = '<tr><th>Pad / rocket</th><th>Booster flights</th></tr>' + L.countBy(FL, 'pad').map(x => row('pad', x)).join('') + L.countBy(FL, 'rocket').map(x => row('rocket', x)).join('');
+}
 function spots() {
   $('spottable').innerHTML = '<tr><th>Spot</th><th>Type</th><th>Landed / tried</th><th></th></tr>' + L.spotsFleet(FL).map(x => `<tr data-w="${esc(x.where)}"><td>${esc(x.name)} (${esc(x.where)})</td><td>${esc(x.type)}</td><td>${x.success}/${x.attempts}</td><td><span class="bar"><i style="width:${100 * x.success / x.attempts}%"></i></span></td></tr>`).join('');
 }
 function syncUrl() {
-  const q = L.serializeState({ q: $('q').value, status: $('status').value, sort: $('sort').value, a: $('ca').value, b: $('cb').value });
+  const q = L.serializeState({ q: $('q').value, status: $('status').value, sort: $('sort').value, fh: $('fh').checked, a: $('ca').value, b: $('cb').value });
   history.replaceState(null, '', location.pathname + q + ($('drawer').open ? location.hash : ''));
 }
 function open(s) {
@@ -110,25 +116,27 @@ function open(s) {
   <p>${b.flights} flights · ${b.landings_ok}/${b.landings_attempted ?? '?'} landings · first ${d10(b.first)} · last ${d10(b.last)}${fpy ? ` · ${fpy.toFixed(1)} flights/yr` : ''}</p>
   <p class="sub">${esc(b.details)}</p>
   ${(() => { const g = L.gaps(fs); if (g.length < 2) return ''; const mx = Math.max(...g.map(x => x.days)); const pts = g.map((x, i) => `${(10 + 620 * i / (g.length - 1)).toFixed(1)},${(62 - 52 * x.days / mx).toFixed(1)}`).join(' '); return `<h3>Days between flights</h3><svg id="spark" viewBox="0 0 640 70" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="#4fb3ff" stroke-width="2"/></svg><p class="sub">From ${Math.round(g[0].days)} days before flight 2 to ${Math.round(g.at(-1).days)} days before flight ${fs.length}; fastest ${Math.min(...g.map(x => x.days)).toFixed(1)}.</p>`; })()}<h3>Where it landed</h3><p id="lb">${lb.map(x => `${esc(x.where)} ${x.success}/${x.attempts}`).join(' · ')}</p>
-  <h3>Every flight</h3><div class="tl"><table><tr><th>#</th><th>Date</th><th>Mission</th><th>Landing</th></tr>${fs.map(f => `<tr${f.launch_status && f.launch_status !== 'Success' ? ` class="fail" title="Launch outcome: ${esc(f.launch_status)}"` : ''}><td>${f.n ?? ''}</td><td>${d10(f.net)}</td><td><a href="${safeUrl(f.source)}" target="_blank" rel="noopener">${esc(f.mission)}</a>${f.launch_status && f.launch_status !== 'Success' ? ' <span class="bad">(launch failure)</span>' : ''}</td><td class="${f.landing_success ? 'ok' : f.landing_attempt ? 'bad' : ''}">${f.landing_attempt ? esc(f.landing_loc || f.landing_type) + (f.landing_success ? ' ✓' : ' ✗') : 'expended'}</td></tr>`).join('')}</table></div>
+  <h3>Every flight</h3><div class="tl"><table><tr><th>#</th><th>Date</th><th>Mission</th><th>Landing</th></tr>${fs.map(f => `<tr${f.launch_status && f.launch_status !== 'Success' ? ` class="fail" title="Launch outcome: ${esc(f.launch_status)}"` : ''}><td>${f.n ?? ''}</td><td>${d10(f.net)}</td><td><a href="${safeUrl(f.source)}" target="_blank" rel="noopener">${esc(f.mission)}</a>${f.launch_status && f.launch_status !== 'Success' ? ' <span class="bad">(launch failure)</span>' : ''}${f.rocket === 'Falcon Heavy' ? ' <span class="sub">· Falcon Heavy</span>' : ''}</td><td class="${f.landing_success ? 'ok' : f.landing_attempt ? 'bad' : ''}">${f.landing_attempt ? esc(f.landing_loc || f.landing_type) + (f.landing_success ? ' ✓' : ' ✗') : 'expended'}</td></tr>`).join('')}</table></div>
   <p><a href="${safeUrl(b.source)}" target="_blank" rel="noopener">Booster source record</a></p>`;
   if (!$('drawer').open) $('drawer').showModal();
   $('close').focus({ preventScroll: true }); $('drawer').scrollTop = 0;
 }
-function render() { const bs = L.filter(all, { q: $('q').value, status: $('status').value }); stats(bs); fate(bs); lanes(bs); lists(bs); }
+function current() { return L.filter(all, { q: $('q').value, status: $('status').value }).filter(b => !$('fh').checked || HEAVY.has(b.serial)); }
+function render() { const bs = current(); stats(bs); fate(bs); lanes(bs); lists(bs); }
 for (const k of Object.keys(L.statusCounts(all))) $('status').insertAdjacentHTML('beforeend', `<option value="${esc(k)}">${esc(k)}</option>`);
 const opts = L.sortBy(all, 'flights').map(b => `<option>${esc(b.serial)}</option>`).join('');
 $('ca').innerHTML = $('cb').innerHTML = opts; $('ca').selectedIndex = 0; $('cb').selectedIndex = 1;
 const st = L.parseState(location.search, all.map(b => b.serial));
-$('q').value = st.q; if ([...$('status').options].some(o => o.value === st.status)) $('status').value = st.status; $('sort').value = st.sort;
+$('q').value = st.q; if ([...$('status').options].some(o => o.value === st.status)) $('status').value = st.status; $('sort').value = st.sort; $('fh').checked = st.fh;
 if (st.a) $('ca').value = st.a; if (st.b) $('cb').value = st.b;
 $('ca').onchange = $('cb').onchange = () => { cmp(); syncUrl(); };
-$('q').oninput = $('status').onchange = $('sort').onchange = () => { render(); syncUrl(); };
+$('q').oninput = $('status').onchange = $('sort').onchange = $('fh').onchange = () => { render(); syncUrl(); };
+$('csv').onclick = () => { const cols = ['serial', 'status', 'flights', 'landings_ok', 'landings_attempted', 'first', 'last', 'source']; const blob = new Blob([L.toCSV(L.sortBy(current(), $('sort').value), cols)], { type: 'text/csv' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'booster-ledger.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); };
 $('share').onclick = async () => { syncUrl(); try { await navigator.clipboard.writeText(location.href); $('share').textContent = '✓ Copied'; } catch { $('share').textContent = '✓ In address bar'; } setTimeout(() => $('share').textContent = '🔗 Link', 1500); }; $('close').onclick = () => $('drawer').close();
 let playing = false;
 $('play').onclick = async () => {
   if (playing) return; playing = true; $('play').disabled = true;
-  for (let y = Y0; y <= Y1; y++) { cutoff = Date.UTC(y + 1, 0); $('year').textContent = `${y} · ${L.activeAt(L.filter(all, { q: $('q').value, status: $('status').value }), cutoff).length} flying`; render(); await new Promise(r => setTimeout(r, 450)); }
+  for (let y = Y0; y <= Y1; y++) { cutoff = Date.UTC(y + 1, 0); $('year').textContent = `${y} · ${L.activeAt(current(), cutoff).length} flying`; render(); await new Promise(r => setTimeout(r, 450)); }
   cutoff = Infinity; $('year').textContent = ''; render(); playing = false; $('play').disabled = false;
 };
 document.addEventListener('keydown', e => {
@@ -141,7 +149,7 @@ $('drawer').addEventListener('close', () => history.replaceState(null, '', locat
 addEventListener('hashchange', () => { const s = L.serialFromHash(location.hash); if (s) open(s); });
 let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(render, 120); });
 $('src').innerHTML = `Data: <a href="https://thespacedevs.com/llapi">The Space Devs Launch Library 2</a> — boosters snapshot ${d10(snap.fetched_at)}, flights snapshot ${d10(fsnap.fetched_at)}. Unofficial; not affiliated with SpaceX.`;
-axis(); render(); recordsPanel(); trend(); years(); spots(); cmp();
+axis(); render(); recordsPanel(); trend(); years(); spots(); pads(); cmp();
 const lw = $('lanewrap'); if (lw.scrollWidth > lw.clientWidth) lw.scrollLeft = lw.scrollWidth; // newest years in view on narrow screens
 const deep = L.serialFromHash(location.hash); if (deep) open(deep);
 document.body.dataset.ready = '1';
