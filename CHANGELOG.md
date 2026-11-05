@@ -2,7 +2,7 @@
 
 ## 0.2.0 — 2026-11-05 (draft PR #1)
 
-TokenMax final-day burn rounds 17–49 on branch `v0.2`.
+TokenMax final-day burn rounds 17–51 on branch `v0.2`.
 
 ### Added
 - `r` opens a random active booster (`?seed=` for tests)
@@ -20,6 +20,7 @@ TokenMax final-day burn rounds 17–49 on branch `v0.2`.
 - Mutation suite (18 mutants) and deep DOM-vs-raw number tests
 
 ### Fixed
+- Match count highlights gold when filters shrink the fleet (r50)
 - Quick-filter chips keep aria-pressed in sync with status (r47–48)
 - Firsts panel DOM count vs ledger.firsts (r49)
 - DOM-vs-raw checks for launch failures + stats cards (r44)

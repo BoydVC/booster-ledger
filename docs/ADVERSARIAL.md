@@ -36,3 +36,23 @@ All 18 mutants in `scripts-mutation.mjs` now die (was 13/18). Fixes:
 - Fastest-list e2e scrubs to 2020 and asserts B1058 · 51.1 days.
 - `safeUrl` moved to `ledger.js` with unit tests; mutation is unit-scoped.
 - Traversal e2e uses `/..%2fpackage.json` (actually escapes) and expects 403; mutation runner sets `MUTATION=1` so Playwright does not reuse the pre-mutant server on :4477.
+
+
+## Round 37–50 (final-day burn, 2026-11-05)
+
+### Fixed
+- Mutation no longer `fuser -k`s :4477; kills only our PORT pid file.
+- Playwright/shots honor `PORT` so a pre-existing :4477 server is left alone.
+- Phone TOC starts collapsed; keyboard hint hidden; controls tightened.
+- Empty filters: Clear filters button, lanewrap hidden, stats go to zero honestly.
+- Drawer `#dserial` + copy-link so title asserts stay stable; per-booster flights CSV.
+- Quick chips keep `aria-pressed` in sync with `#status`.
+- TV default interval 60s under `prefers-reduced-motion`.
+
+### Accepted
+- Records/firsts stay fleet-wide when lifelines are filtered (deep-linkable fleet facts).
+- PAC expended splashdowns have `landing_loc` but `landing_attempt=false`, so they correctly omit from `spotsFleet`.
+- Narrow screens scroll lanewrap to the newest years on purpose.
+
+### Verification posture
+Unit + property + Playwright DOM-vs-raw + axe + 18-mutant suite. Screenshots OCR-clean of family names.
