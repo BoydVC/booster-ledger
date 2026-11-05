@@ -5,5 +5,5 @@ test('progression has a point per record and matches raw', async ({ page }) => {
   await expect(page.locator('#progsvg circle.rp')).toHaveCount(max);
   const first = F.filter(f => f.n === max).sort((a, b) => a.net < b.net ? -1 : 1)[0];
   await expect(page.locator(`#progsvg circle[data-n="${max}"]`)).toHaveAttribute('data-s', first.serial);
-  await page.locator(`#progsvg circle[data-n="${max}"]`).click(); await expect(page.locator('#dtitle')).toHaveText(first.serial);
+  await page.locator(`#progsvg circle[data-n="${max}"]`).click(); await expect(page.locator('#dserial')).toHaveText(first.serial);
 });

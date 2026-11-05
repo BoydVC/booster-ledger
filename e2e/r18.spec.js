@@ -48,10 +48,10 @@ test('j/k walks boosters', async ({ page }) => {
   await go(page);
   await page.keyboard.press('j');
   await expect(page.locator('#drawer')).toBeVisible();
-  const first = await page.locator('#dtitle').textContent();
+  const first = await page.locator('#dserial').textContent();
   await page.keyboard.press('j');
-  const second = await page.locator('#dtitle').textContent();
+  const second = await page.locator('#dserial').textContent();
   expect(second).not.toBe(first);
   await page.keyboard.press('k');
-  await expect(page.locator('#dtitle')).toHaveText(first);
+  await expect(page.locator('#dserial')).toHaveText(first);
 });

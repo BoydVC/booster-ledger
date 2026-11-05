@@ -2,9 +2,10 @@
 
 ## 0.2.0 — 2026-11-05 (draft PR #1)
 
-TokenMax final-day burn rounds 17–40 on branch `v0.2`.
+TokenMax final-day burn rounds 17–42 on branch `v0.2`.
 
 ### Added
+- Drawer copy-link + per-booster flights CSV
 - Cumulative fleet flights chart; `?` keyboard help dialog
 - Year scrubber + `[`/`]` nudge; Space replay shares the same cutoff
 - Mission-name search; landing-type filter; quick Active/Expended/All chips
@@ -17,6 +18,7 @@ TokenMax final-day burn rounds 17–40 on branch `v0.2`.
 - Mutation suite (18 mutants) and deep DOM-vs-raw number tests
 
 ### Fixed
+- Property tests: spots↔attempts, rank uniqueness, asOf monotonic, cumfleet end (r41)
 - Empty state hides lanewrap; drawer per-booster flights CSV (r40)
 - Empty filters show Clear filters; skip link; focus-visible rings; snapshot badge (r39)
 - Phone: TOC starts collapsed, keyboard hint hidden, tighter controls (r38)

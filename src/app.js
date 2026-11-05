@@ -98,7 +98,7 @@ function open(s) {
   const b = all.find(x => x.serial === s); if (!b) return;
   const fs = L.flightsFor(FL, s), lr = L.landingRate(b), fpy = L.flightsPerYear(b), lb = L.landingBreakdown(fs);
   history.replaceState(null, '', '#' + s);
-  $('detail').innerHTML = `<h2 id="dtitle">${esc(b.serial)} <button type="button" id="dlink" class="mini" aria-label="Copy link to this booster">🔗</button></h2><p>Status: <b>${esc(b.status)}</b> · ${esc(L.blockOf(b.details, b.serial))} · #${L.rankOf(all, b.serial)} of ${all.length} by flights${lr != null ? ` · ${Math.round(lr * 100)}% landings` : ''}</p>
+  $('detail').innerHTML = `<h2 id="dtitle"><span id="dserial">${esc(b.serial)}</span> <button type="button" id="dlink" class="mini" aria-label="Copy link to this booster">🔗</button></h2><p>Status: <b>${esc(b.status)}</b> · ${esc(L.blockOf(b.details, b.serial))} · #${L.rankOf(all, b.serial)} of ${all.length} by flights${lr != null ? ` · ${Math.round(lr * 100)}% landings` : ''}</p>
   <p>${b.flights} flights · ${b.landings_ok}/${b.landings_attempted ?? '?'} landings · first ${d10(b.first)} · last ${d10(b.last)}${fpy ? ` · ${fpy.toFixed(1)} flights/yr` : ''}</p>
   <p class="sub">${esc(b.details)}</p>${(() => { const hr = L.heavyRole(FL, b.serial); return hr ? `<p class="sub">Flew Falcon Heavy ${hr.flights}× · pads ${hr.pads.map(esc).join(', ')}</p>` : ''; })()}
   ${(() => { const g = L.gaps(fs); if (g.length < 2) return ''; return `<h3>Days between flights</h3><svg id="spark" viewBox="0 0 640 70" preserveAspectRatio="none"><polyline points="${C.sparkPoints(g)}" fill="none" stroke="#4fb3ff" stroke-width="2"/></svg><p class="sub">From ${Math.round(g[0].days)} days before flight 2 to ${Math.round(g.at(-1).days)} days before flight ${fs.length}; fastest ${Math.min(...g.map(x => x.days)).toFixed(1)}.</p>`; })()}${(() => { const r = C.timelineSVG(fs, { w: innerWidth < 700 ? 400 : 640 }); if (!r) return ''; return `<h3>Mission timeline</h3><svg id="tline" viewBox="${r.viewBox}" role="img" aria-label="mission timeline">${r.svg}</svg>`; })()}
@@ -248,7 +248,7 @@ function tvCard(list, i) {
   <div class="foot"><span>Data: The Space Devs Launch Library 2, snapshot ${d10(snap.fetched_at)}</span><span class="dots">${list.map((_, k) => `<span class="${k === i ? 'on' : ''}"></span>`).join('')}</span></div></div>`;
 }
 if (new URLSearchParams(location.search).get('mode') === 'tv') {
-  const list = L.leaderboard(all, 10), ms = Math.max(2000, Number(new URLSearchParams(location.search).get('every')) || 8000); let i = 0;
+  const list = L.leaderboard(all, 10), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, ms = Math.max(2000, Number(new URLSearchParams(location.search).get('every')) || (reduce ? 60000 : 8000)); let i = 0;
   document.documentElement.classList.add('tv'); document.body.classList.add('tv'); $('tv').hidden = false; tvCard(list, 0);
   setInterval(() => { i = (i + 1) % list.length; tvCard(list, i); }, ms);
   document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') { i = (i + 1) % list.length; tvCard(list, i); } if (e.key === 'ArrowLeft') { i = (i + list.length - 1) % list.length; tvCard(list, i); } if (e.key === 'Escape') location.search = ''; });
