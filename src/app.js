@@ -56,17 +56,18 @@ function recordsPanel() {
     r.busiestDroneship && `<div id="rec-ds"><b>Busiest droneship</b><br>${esc(r.busiestDroneship.name)}: ${r.busiestDroneship.success}/${r.busiestDroneship.attempts} landings</div>`,
   ].filter(Boolean).join('');
 }
-function trend() { const r = C.trendSVG(L.turnaroundByYear(FL), NOWY); $('trendsvg').setAttribute('viewBox', r.viewBox); $('trendsvg').innerHTML = r.svg; }
-function cmpChart(sa, sb) { const r = C.cmpSVG(L.cumulative(FL, sa), L.cumulative(FL, sb), sa, sb); if (!r) return; $('cmpsvg').setAttribute('viewBox', r.viewBox); $('cmpsvg').innerHTML = r.svg; }
+const CW = () => ({ w: innerWidth < 700 ? 400 : 640 });
+function trend() { const r = C.trendSVG(L.turnaroundByYear(FL), NOWY, CW()); $('trendsvg').setAttribute('viewBox', r.viewBox); $('trendsvg').innerHTML = r.svg; }
+function cmpChart(sa, sb) { const r = C.cmpSVG(L.cumulative(FL, sa), L.cumulative(FL, sb), sa, sb, CW()); if (!r) return; $('cmpsvg').setAttribute('viewBox', r.viewBox); $('cmpsvg').innerHTML = r.svg; }
 function cmp() {
   const [a, b] = L.compare(all, FL, $('ca').value, $('cb').value); if (!a || !b) return; cmpChart(a.serial, b.serial);
   const rows = [['Status', 'status'], ['Flights', 'flights'], ['Landings', 'landings'], ['First flight', 'first', d10], ['Last flight', 'last', d10],
     ['Median turnaround', 'medianGap', v => v == null ? '—' : v.toFixed(1) + ' d'], ['Fastest turnaround', 'fastestGap', v => v == null ? '—' : v.toFixed(1) + ' d'], ['Most-used landing spot', 'topSpot']];
   $('ctable').innerHTML = `<tr><th></th><th>${esc(a.serial)}</th><th>${esc(b.serial)}</th></tr>` + rows.map(([k, f, fmt = v => v ?? '—']) => `<tr data-k="${f}"><th>${k}</th><td>${esc(fmt(a[f]))}</td><td>${esc(fmt(b[f]))}</td></tr>`).join('');
 }
-function years() { const r = C.yearsSVG(L.flightsByYear(FL), NOWY); $('yearsvg').setAttribute('viewBox', r.viewBox); $('yearsvg').innerHTML = r.svg; }
+function years() { const r = C.yearsSVG(L.flightsByYear(FL), NOWY, CW()); $('yearsvg').setAttribute('viewBox', r.viewBox); $('yearsvg').innerHTML = r.svg; }
 function prog() {
-  const P = L.recordProgression(FL), r = C.progSVG(P, Date.parse(fsnap.fetched_at)); if (!r) return;
+  const P = L.recordProgression(FL), r = C.progSVG(P, Date.parse(fsnap.fetched_at), CW()); if (!r) return;
   $('progsvg').setAttribute('viewBox', r.viewBox); $('progsvg').innerHTML = r.svg;
   $('progsvg').querySelectorAll('circle').forEach(c => c.onclick = () => open(c.dataset.s));
   const last = P.at(-1), a = f => `<a href="${safeUrl(f.source)}" target="_blank" rel="noopener">${esc(f.mission)}</a>`;
@@ -122,7 +123,7 @@ document.addEventListener('keydown', e => {
 });
 $('drawer').addEventListener('close', () => history.replaceState(null, '', location.pathname + location.search));
 addEventListener('hashchange', () => { const s = L.serialFromHash(location.hash); if (s) open(s); });
-let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(render, 120); });
+let rz, lastCW = CW().w; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { render(); if (CW().w !== lastCW) { lastCW = CW().w; trend(); years(); prog(); cmp(); } }, 120); });
 $('src').innerHTML = `Data: <a href="https://thespacedevs.com/llapi">The Space Devs Launch Library 2</a> — boosters snapshot ${d10(snap.fetched_at)}, flights snapshot ${d10(fsnap.fetched_at)}. Unofficial; not affiliated with SpaceX.`;
 axis(); render(); recordsPanel(); trend(); years(); spots(); pads(); prog(); cmp();
 const lw = $('lanewrap'); if (lw.scrollWidth > lw.clientWidth) lw.scrollLeft = lw.scrollWidth; // newest years in view on narrow screens

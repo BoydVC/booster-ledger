@@ -13,3 +13,8 @@ describe('chart builders', () => {
   it('spark: points stay inside the box', () => { const p = C.sparkPoints([{ days: 1 }, { days: 50 }, { days: 9 }]); for (const xy of p.split(' ')) { const [x, y] = xy.split(',').map(Number); expect(x).toBeGreaterThanOrEqual(0); expect(x).toBeLessThanOrEqual(640); expect(y).toBeGreaterThanOrEqual(0); expect(y).toBeLessThanOrEqual(70); } });
   it('no NaN anywhere', () => { for (const s of [C.trendSVG(L.turnaroundByYear(FL), 2026).svg, C.yearsSVG(L.flightsByYear(FL), 2026).svg, C.progSVG(L.recordProgression(FL), Date.now()).svg]) expect(s).not.toMatch(/NaN|undefined|Infinity/); });
 });
+describe('narrow charts', () => {
+  it('short year labels when narrow', () => { const s = C.yearsSVG(L.flightsByYear(FL), 2026, { w: 400 }).svg; expect(s).toContain("'25<"); expect(s).toContain('viewBox' in C.yearsSVG(L.flightsByYear(FL), 2026, { w: 400 }) ? '' : ''); });
+  it('viewBox follows width', () => expect(C.trendSVG(L.turnaroundByYear(FL), 2026, { w: 400 }).viewBox).toBe('0 0 400 260'));
+  it('wide default keeps full years', () => expect(C.trendSVG(L.turnaroundByYear(FL), 2026).svg).toContain('>2019<'));
+});

@@ -34,3 +34,5 @@ body.tv>*:not(#tv){display:none!important}body.tv{padding:0;overflow:hidden}#tv{
 [hidden]{display:none!important}
 @media print{body{background:#fff;color:#000}.controls,#tvlink,dialog,#share,#csv{display:none!important}#lanewrap{max-height:none;overflow:visible}main{grid-template-columns:1fr}svg{background:#fff!important}.stat,#records div{background:#fff;border:1px solid #ccc}a{color:#000}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:700px){#panels svg text{font-size:12px}}
+@media (min-width:1600px){dialog{max-width:860px;font-size:16px}body{font-size:16px}}
