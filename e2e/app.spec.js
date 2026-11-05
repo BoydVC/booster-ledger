@@ -24,4 +24,4 @@ test('phone layout has no horizontal scroll', async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= 392)).toBe(true);
 });
 test('footer cites source', async ({ page }) => { await page.goto('/'); await expect(page.locator('footer a')).toHaveAttribute('href', /thespacedevs/); });
-test('server blocks traversal', async ({ request }) => { const r = await request.get('/..%2fserver.js'); expect([403,404]).toContain(r.status()); });
+test('server blocks traversal', async ({ request }) => { const r = await request.get('/..%2fpackage.json'); expect(r.status()).toBe(403); });

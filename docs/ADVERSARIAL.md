@@ -27,3 +27,12 @@ Findings from a fresh read of `src/ledger.js`, `src/charts.js`, `src/app.js`, `s
 | `blockOf(details, serial)` | drawer subtitle + blocks legend | unit serial ranges + e2e "Block 5" on B1067 |
 | keydown j/k | opens drawer, walks `ordered()` | e2e j/k |
 | playwright.config.js | all e2e | 77 passed against live :4477 |
+
+
+## Round 25 mutation hardening
+All 18 mutants in `scripts-mutation.mjs` now die (was 13/18). Fixes:
+- Unit test that trend titles use `min` not `median`.
+- Drawer verify includes B1012 (failed landing) so ✓/✗ mutant dies.
+- Fastest-list e2e scrubs to 2020 and asserts B1058 · 51.1 days.
+- `safeUrl` moved to `ledger.js` with unit tests; mutation is unit-scoped.
+- Traversal e2e uses `/..%2fpackage.json` (actually escapes) and expects 403; mutation runner sets `MUTATION=1` so Playwright does not reuse the pre-mutant server on :4477.

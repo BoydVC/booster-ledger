@@ -39,7 +39,7 @@ test('trend medians', async ({ page }) => {
   const med = xs => { const s = [...xs].sort((a, b) => a - b), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
   for (const [y, xs] of Object.entries(yr)) await expect(page.locator(`#trendsvg .pt[data-y="${y}"] title`)).toContainText(`median ${med(xs).toFixed(1)} d, fastest ${Math.min(...xs).toFixed(1)} d, ${xs.length} reflights`);
 });
-for (const s of ['B1067', 'B1058', 'B1049', 'B1003']) test(`drawer rows for ${s}`, async ({ page }) => {
+for (const s of ['B1067', 'B1058', 'B1049', 'B1003', 'B1012']) test(`drawer rows for ${s}`, async ({ page }) => {
   await page.goto(`/?v#${s}`); await page.waitForSelector('#drawer[open]');
   const rows = await page.locator('.tl tr').evaluateAll(trs => trs.slice(1).map(tr => [...tr.cells].map(c => c.textContent.trim())));
   expect(rows).toEqual(by[s].map(f => [String(f.n), f.net.slice(0, 10), f.mission, f.landing_attempt ? (f.landing_loc || f.landing_type) + (f.landing_success ? ' ✓' : ' ✗') : 'expended']));

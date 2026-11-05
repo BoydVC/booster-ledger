@@ -18,7 +18,7 @@ const M = [
   ['src/app.js', 'e2e', 'stat landings from wrong field', "['Landings', s.landings]", "['Landings', s.flights]"],
   ['src/app.js', 'e2e', 'drawer landing mark', "(f.landing_success ? ' ✓' : ' ✗')", "(f.landing_attempt ? ' ✓' : ' ✗')"],
   ['src/app.js', 'e2e', 'fastest list ignores cutoff', "keep.has(f.serial) && Date.parse(f.net) < cutoff", "keep.has(f.serial)"],
-  ['src/app.js', 'e2e', 'unsafe link', "/^https:\\/\\/ll\\.thespacedevs\\.com\\//.test(u || '') ? u : '#'", "u"],
+  ['src/ledger.js', 'unit', 'unsafe link', "return /^https:\\/\\/ll\\.thespacedevs\\.com\\//.test(u || '') ? u : '#';", 'return u;'],
   ['server.js', 'e2e', 'traversal guard', "if (!p.startsWith(root + path.sep))", "if (false)"],
 ];
 let killed = 0, cur = null;
@@ -27,7 +27,9 @@ try {
     const orig = fs.readFileSync(F, 'utf8'); cur = [F, orig];
     if (!orig.includes(a)) { console.log('SKIP (pattern missing):', name); continue; }
     fs.writeFileSync(F, orig.replace(a, b));
-    const r = spawnSync('npx', SUITES[suite], { encoding: 'utf8' });
+    const env = { ...process.env, MUTATION: F === 'server.js' ? '1' : '' };
+    if (F === 'server.js') spawnSync('bash', ['-c', 'fuser -k 4477/tcp >/dev/null 2>&1 || true'], { encoding: 'utf8' });
+    const r = spawnSync('npx', SUITES[suite], { encoding: 'utf8', env });
     fs.writeFileSync(F, orig); cur = null;
     const dead = r.status !== 0; killed += dead; console.log(dead ? 'killed  ' : 'SURVIVED', name);
   }

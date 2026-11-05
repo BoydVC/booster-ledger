@@ -316,3 +316,7 @@ export function recoveredShareByYear(flights) {
   }
   return Object.values(by).sort((a, b) => a.year - b.year).map(e => ({ ...e, share: e.total ? e.recovered / e.total : 0 }));
 }
+
+export function safeUrl(u) {
+  return /^https:\/\/ll\.thespacedevs\.com\//.test(u || '') ? u : '#';
+}

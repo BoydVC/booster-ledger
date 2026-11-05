@@ -5,7 +5,7 @@ catch (e) { const el = document.getElementById('err'); el.hidden = false; el.tex
 const NOWY = new Date(fsnap.fetched_at).getUTCFullYear(), all = L.load(snap), FL = fsnap.flights, HEAVY = new Set(L.heavyBoosters(FL));
 const $ = id => document.getElementById(id);
 const esc = C.esc;
-const safeUrl = u => /^https:\/\/ll\.thespacedevs\.com\//.test(u || '') ? u : '#';
+const safeUrl = L.safeUrl;
 const d10 = s => (s || '').slice(0, 10);
 const COL = { active: '#4fb3ff', expended: '#ffc94f', destroyed: '#ff6b6b', lost: '#ff6b6b', retired: '#8a96a8' };
 const [Y0, Y1] = L.yearRange(all), T0 = Date.UTC(Y0, 0), T1 = Date.UTC(Y1 + 1, 0), W = 900;

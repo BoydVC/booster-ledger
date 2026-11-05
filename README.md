@@ -16,6 +16,8 @@ Every Falcon first stage with a B10xx serial on one screen: how many times it fl
 - **Landing success rate by year.**
 - **Flights per year** split by how the booster came home (droneship, back to land, ocean or expended).
 - **Flights per month** heatmap and **turnaround distribution** histogram.
+- **Reuse curve:** share of boosters that reached at least N flights.
+- **Launch pad cadence** and **recovered share by year**.
 - **Reuse record progression:** the first booster to reach each flight count.
 - **Landing spots** and **launch pads and rockets** tables.
 - **Compare two boosters:** cumulative-flights chart and a side-by-side table.
