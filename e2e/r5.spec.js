@@ -1,0 +1,6 @@
+import { test, expect } from '@playwright/test'; import fs from 'node:fs';
+const F = JSON.parse(fs.readFileSync('src/flights.json', 'utf8')).flights;
+test('compare chart shows both counts', async ({ page }) => { await page.goto('/?a=B1067&b=B1058'); await page.waitForSelector('body[data-ready="1"]'); const n = s => F.filter(f => f.serial === s).length; await expect(page.locator('#cmpsvg')).toContainText(`B1067 · ${n('B1067')}`); await expect(page.locator('#cmpsvg')).toContainText(`B1058 · ${n('B1058')}`); expect(await page.locator('#cmpsvg path').count()).toBe(2); });
+test('drawer sparkline for multi-flight booster', async ({ page }) => { await page.goto('/?s#B1067'); await expect(page.locator('#spark polyline')).toHaveCount(1); });
+test('no sparkline for single-flight booster', async ({ page }) => { await page.goto('/?s#B1003'); await page.waitForSelector('#drawer[open]'); await expect(page.locator('#spark')).toHaveCount(0); });
+test('drawer opens scrolled to top with title visible', async ({ page }) => { await page.goto('/?t#B1063'); await page.waitForSelector('#drawer[open]'); await expect(page.locator('#dtitle')).toBeInViewport(); expect(await page.evaluate(() => document.getElementById('drawer').scrollTop)).toBe(0); });

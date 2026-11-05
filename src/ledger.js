@@ -158,3 +158,9 @@ export function serializeState(s) {
 }
 
 export function launchFailures(flights) { return flights.filter(f => f.launch_status && f.launch_status !== 'Success'); }
+export function cumulative(flights, serial) {
+  return flightsFor(flights, serial).map((f, i) => ({ t: Date.parse(f.net), n: i + 1 }));
+}
+export function linePath(points, xf, yf) {
+  return points.map((p, i) => `${i ? 'L' : 'M'}${xf(p).toFixed(1)},${yf(p).toFixed(1)}`).join('');
+}

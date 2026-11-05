@@ -35,7 +35,7 @@ function lanes(bs) {
   });
   const svg = $('lanes'); svg.setAttribute('viewBox', `0 0 ${W} ${Math.max(H, 20)}`); svg.style.height = Math.max(H, 20) * Math.max(svg.clientWidth || W, 720) / W + 'px'; svg.innerHTML = g;
   if (!rows.length) svg.innerHTML = `<text x="20" y="16" fill="#8a96a8">No boosters match.</text>`;
-  svg.querySelectorAll('.lane').forEach(el => { el.onclick = () => open(el.dataset.s); el.onkeydown = e => e.key === 'Enter' && open(el.dataset.s); });
+  svg.querySelectorAll('.lane').forEach(el => { el.onclick = () => open(el.dataset.s); el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); open(el.dataset.s); } }; });
 }
 function lists(bs) {
   $('top').innerHTML = L.leaderboard(bs).map(b => `<li data-s="${esc(b.serial)}">${esc(b.serial)} — ${b.flights} flights</li>`).join('');
@@ -55,31 +55,42 @@ function recordsPanel() {
   ].filter(Boolean).join('');
 }
 function trend() {
-  const t = L.turnaroundByYear(FL), w = 900, h = 260, pad = 44, max = Math.max(...t.map(x => x.median));
+  const t = L.turnaroundByYear(FL), w = 640, h = 260, pad = 44, max = Math.max(...t.map(x => x.median));
   const x = i => pad + (w - pad * 2) * (t.length < 2 ? .5 : i / (t.length - 1)), y = v => h - 30 - (h - 60) * v / max;
   let g = '';
   for (let v = 0; v <= max; v += Math.ceil(max / 5 / 50) * 50 || 50) g += `<line x1="${pad}" x2="${w - pad}" y1="${y(v)}" y2="${y(v)}" stroke="#1e2838"/><text x="4" y="${y(v) + 4}" fill="#8a96a8" font-size="11">${v}d</text>`;
   g += `<polyline fill="none" stroke="#4fb3ff" stroke-width="3" points="${t.map((p, i) => `${x(i)},${y(p.median)}`).join(' ')}"/>`;
   g += `<polyline fill="none" stroke="#ffc94f" stroke-width="2" stroke-dasharray="5 4" points="${t.map((p, i) => `${x(i)},${y(p.min)}`).join(' ')}"/>`;
-  t.forEach((p, i) => g += `<g class="pt" data-y="${p.year}"><circle cx="${x(i)}" cy="${y(p.median)}" r="4" fill="#4fb3ff"><title>${p.year}: median ${p.median.toFixed(1)} d, fastest ${p.min.toFixed(1)} d, ${p.reflights} reflights</title></circle><text x="${x(i)}" y="${h - 10}" text-anchor="middle" fill="#8a96a8" font-size="11">${p.year}${p.year === new Date(fsnap.fetched_at).getUTCFullYear() ? ' (YTD)' : ''}</text><text x="${x(i)}" y="${y(p.median) - 8}" text-anchor="middle" fill="#e8edf5" font-size="11">${Math.round(p.median)}</text></g>`);
+  t.forEach((p, i) => g += `<g class="pt" data-y="${p.year}"><circle cx="${x(i)}" cy="${y(p.median)}" r="4" fill="#4fb3ff"><title>${p.year}: median ${p.median.toFixed(1)} d, fastest ${p.min.toFixed(1)} d, ${p.reflights} reflights</title></circle><text x="${x(i)}" y="${h - 10}" text-anchor="middle" fill="#8a96a8" font-size="11">${p.year}${p.year === new Date(fsnap.fetched_at).getUTCFullYear() ? '*' : ''}</text><text x="${x(i)}" y="${y(p.median) - 8}" text-anchor="middle" fill="#e8edf5" font-size="11">${Math.round(p.median)}</text></g>`);
   g += `<text x="${w - pad}" y="16" text-anchor="end" fill="#4fb3ff" font-size="12">— median</text><text x="${w - pad}" y="32" text-anchor="end" fill="#ffc94f" font-size="12">- - fastest</text>`;
   $('trendsvg').setAttribute('viewBox', `0 0 ${w} ${h}`); $('trendsvg').innerHTML = g;
 }
+function cmpChart(sa, sb) {
+  const A = L.cumulative(FL, sa), B2 = L.cumulative(FL, sb), pts = [...A, ...B2]; if (!pts.length) return;
+  const w = 640, h = 220, pad = 40, t0 = Math.min(...pts.map(p => p.t)), t1 = Math.max(...pts.map(p => p.t)), m = Math.max(...pts.map(p => p.n));
+  const x = p => pad + (w - pad * 2) * (p.t - t0) / ((t1 - t0) || 1), y = p => h - 28 - (h - 50) * p.n / m;
+  const stepped = P => P.flatMap((p, i) => i ? [{ t: p.t, n: P[i - 1].n }, p] : [p]);
+  let g = '';
+  for (let yy = new Date(t0).getUTCFullYear() + 1; yy <= new Date(t1).getUTCFullYear(); yy++) { const xx = x({ t: Date.UTC(yy, 0) }); g += `<line x1="${xx}" x2="${xx}" y1="10" y2="${h - 24}" stroke="#1e2838"/><text x="${xx + 2}" y="${h - 8}" fill="#8a96a8" font-size="11">${yy}</text>`; }
+  g += `<path d="${L.linePath(stepped(A), x, y)}" fill="none" stroke="#4fb3ff" stroke-width="2.5"/><path d="${L.linePath(stepped(B2), x, y)}" fill="none" stroke="#ffc94f" stroke-width="2.5"/>`;
+  g += `<text x="${pad}" y="18" fill="#4fb3ff" font-size="12">${esc(sa)} · ${A.length}</text><text x="${pad + 110}" y="18" fill="#ffc94f" font-size="12">${esc(sb)} · ${B2.length}</text><text x="${w - pad}" y="18" text-anchor="end" fill="#8a96a8" font-size="11">cumulative flights</text>`;
+  $('cmpsvg').setAttribute('viewBox', `0 0 ${w} ${h}`); $('cmpsvg').innerHTML = g;
+}
 function cmp() {
-  const [a, b] = L.compare(all, FL, $('ca').value, $('cb').value); if (!a || !b) return;
+  const [a, b] = L.compare(all, FL, $('ca').value, $('cb').value); if (!a || !b) return; cmpChart(a.serial, b.serial);
   const rows = [['Status', 'status'], ['Flights', 'flights'], ['Landings', 'landings'], ['First flight', 'first', d10], ['Last flight', 'last', d10],
     ['Median turnaround', 'medianGap', v => v == null ? '—' : v.toFixed(1) + ' d'], ['Fastest turnaround', 'fastestGap', v => v == null ? '—' : v.toFixed(1) + ' d'], ['Most-used landing spot', 'topSpot']];
   $('ctable').innerHTML = `<tr><th></th><th>${esc(a.serial)}</th><th>${esc(b.serial)}</th></tr>` + rows.map(([k, f, fmt = v => v ?? '—']) => `<tr data-k="${f}"><th>${k}</th><td>${esc(fmt(a[f]))}</td><td>${esc(fmt(b[f]))}</td></tr>`).join('');
 }
 const TCOL = { ASDS: '#4fb3ff', RTLS: '#5fd38d', Ocean: '#b48cff', EXP: '#ffc94f', Other: '#8a96a8' };
 function years() {
-  const t = L.flightsByYear(FL), w = 900, h = 260, pad = 44, max = Math.max(...t.map(x => x.total)), bw = (w - pad * 2) / t.length;
+  const t = L.flightsByYear(FL), w = 640, h = 260, pad = 44, max = Math.max(...t.map(x => x.total)), bw = (w - pad * 2) / t.length;
   const y = v => h - 30 - (h - 60) * v / max;
   let g = '';
   t.forEach((p, i) => {
     let acc = 0; const x = pad + i * bw + bw * .15;
     for (const k of ['ASDS', 'RTLS', 'Ocean', 'EXP', 'Other']) { if (!p[k]) continue; g += `<rect class="seg" data-y="${p.year}" data-k="${k}" x="${x}" y="${y(acc + p[k])}" width="${bw * .7}" height="${y(acc) - y(acc + p[k])}" fill="${TCOL[k]}"><title>${p.year} ${k}: ${p[k]}</title></rect>`; acc += p[k]; }
-    g += `<text x="${x + bw * .35}" y="${y(p.total) - 5}" text-anchor="middle" fill="#e8edf5" font-size="11" class="tot" data-y="${p.year}">${p.total}</text><text x="${x + bw * .35}" y="${h - 10}" text-anchor="middle" fill="#8a96a8" font-size="11">${p.year}${p.year === new Date(fsnap.fetched_at).getUTCFullYear() ? ' YTD' : ''}</text>`;
+    g += `<text x="${x + bw * .35}" y="${y(p.total) - 5}" text-anchor="middle" fill="#e8edf5" font-size="11" class="tot" data-y="${p.year}">${p.total}</text><text x="${x + bw * .35}" y="${h - 10}" text-anchor="middle" fill="#8a96a8" font-size="11">${p.year}${p.year === new Date(fsnap.fetched_at).getUTCFullYear() ? '*' : ''}</text>`;
   });
   g += Object.entries(TCOL).slice(0, 4).map(([k, c], i) => `<rect x="${pad + i * 80}" y="8" width="10" height="10" fill="${c}"/><text x="${pad + 14 + i * 80}" y="17" fill="#8a96a8" font-size="11">${k}</text>`).join('');
   $('yearsvg').setAttribute('viewBox', `0 0 ${w} ${h}`); $('yearsvg').innerHTML = g;
@@ -98,10 +109,11 @@ function open(s) {
   $('detail').innerHTML = `<h2 id="dtitle">${esc(b.serial)}</h2><p>Status: <b>${esc(b.status)}</b> · #${L.rankOf(all, b.serial)} of ${all.length} by flights${lr != null ? ` · ${Math.round(lr * 100)}% landings` : ''}</p>
   <p>${b.flights} flights · ${b.landings_ok}/${b.landings_attempted ?? '?'} landings · first ${d10(b.first)} · last ${d10(b.last)}${fpy ? ` · ${fpy.toFixed(1)} flights/yr` : ''}</p>
   <p class="sub">${esc(b.details)}</p>
-  <h3>Where it landed</h3><p id="lb">${lb.map(x => `${esc(x.where)} ${x.success}/${x.attempts}`).join(' · ')}</p>
+  ${(() => { const g = L.gaps(fs); if (g.length < 2) return ''; const mx = Math.max(...g.map(x => x.days)); const pts = g.map((x, i) => `${(10 + 620 * i / (g.length - 1)).toFixed(1)},${(62 - 52 * x.days / mx).toFixed(1)}`).join(' '); return `<h3>Days between flights</h3><svg id="spark" viewBox="0 0 640 70" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="#4fb3ff" stroke-width="2"/></svg><p class="sub">From ${Math.round(g[0].days)} days before flight 2 to ${Math.round(g.at(-1).days)} days before flight ${fs.length}; fastest ${Math.min(...g.map(x => x.days)).toFixed(1)}.</p>`; })()}<h3>Where it landed</h3><p id="lb">${lb.map(x => `${esc(x.where)} ${x.success}/${x.attempts}`).join(' · ')}</p>
   <h3>Every flight</h3><div class="tl"><table><tr><th>#</th><th>Date</th><th>Mission</th><th>Landing</th></tr>${fs.map(f => `<tr${f.launch_status && f.launch_status !== 'Success' ? ` class="fail" title="Launch outcome: ${esc(f.launch_status)}"` : ''}><td>${f.n ?? ''}</td><td>${d10(f.net)}</td><td><a href="${safeUrl(f.source)}" target="_blank" rel="noopener">${esc(f.mission)}</a>${f.launch_status && f.launch_status !== 'Success' ? ' <span class="bad">(launch failure)</span>' : ''}</td><td class="${f.landing_success ? 'ok' : f.landing_attempt ? 'bad' : ''}">${f.landing_attempt ? esc(f.landing_loc || f.landing_type) + (f.landing_success ? ' ✓' : ' ✗') : 'expended'}</td></tr>`).join('')}</table></div>
   <p><a href="${safeUrl(b.source)}" target="_blank" rel="noopener">Booster source record</a></p>`;
   if (!$('drawer').open) $('drawer').showModal();
+  $('close').focus({ preventScroll: true }); $('drawer').scrollTop = 0;
 }
 function render() { const bs = L.filter(all, { q: $('q').value, status: $('status').value }); stats(bs); fate(bs); lanes(bs); lists(bs); }
 for (const k of Object.keys(L.statusCounts(all))) $('status').insertAdjacentHTML('beforeend', `<option value="${esc(k)}">${esc(k)}</option>`);
