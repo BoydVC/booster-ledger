@@ -1,0 +1,1 @@
+export default { testDir: 'e2e', use: { baseURL: 'http://127.0.0.1:4477', launchOptions: { executablePath: process.env.PW_CHROME || undefined } }, webServer: { command: 'PORT=4477 node server.js', url: 'http://127.0.0.1:4477', reuseExistingServer: false } };
