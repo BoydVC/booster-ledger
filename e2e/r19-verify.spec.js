@@ -6,7 +6,7 @@ const F = JSON.parse(fs.readFileSync('src/flights.json', 'utf8')).flights;
 const go = async p => { await p.goto('/'); await p.waitForSelector('body[data-ready="1"]'); };
 
 test('every lane flight count equals raw booster.flights', async ({ page }) => {
-  await go(page);
+  await go(page); await page.locator('#tocwrap').evaluate(el => { el.open = true; });
   const dom = await page.locator('#lanes .lane').evaluateAll(els => els.map(e => ({
     s: e.getAttribute('data-s'),
     n: +(e.querySelectorAll('text')[1]?.textContent || 0),
@@ -17,7 +17,7 @@ test('every lane flight count equals raw booster.flights', async ({ page }) => {
 });
 
 test('spot table success/attempts match raw', async ({ page }) => {
-  await go(page);
+  await go(page); await page.locator('#tocwrap').evaluate(el => { el.open = true; });
   const raw = {};
   for (const f of F) {
     if (!f.landing_attempt) continue;
@@ -36,7 +36,7 @@ test('spot table success/attempts match raw', async ({ page }) => {
 });
 
 test('year bar totals match raw flights per year', async ({ page }) => {
-  await go(page);
+  await go(page); await page.locator('#tocwrap').evaluate(el => { el.open = true; });
   const by = {};
   for (const f of F) { const y = +f.net.slice(0, 4); by[y] = (by[y] || 0) + 1; }
   const dom = await page.locator('#yearsvg text.tot').evaluateAll(els => els.map(e => ({ y: +e.getAttribute('data-y'), n: +e.textContent })));
@@ -44,7 +44,7 @@ test('year bar totals match raw flights per year', async ({ page }) => {
 });
 
 test('rate chart points match raw success rates', async ({ page }) => {
-  await go(page);
+  await go(page); await page.locator('#tocwrap').evaluate(el => { el.open = true; });
   const by = {};
   for (const f of F) {
     if (!f.landing_attempt) continue;
@@ -57,7 +57,7 @@ test('rate chart points match raw success rates', async ({ page }) => {
 });
 
 test('compare table flights equal raw counts', async ({ page }) => {
-  await go(page);
+  await go(page); await page.locator('#tocwrap').evaluate(el => { el.open = true; });
   const a = await page.locator('#ca').inputValue();
   const b = await page.locator('#cb').inputValue();
   const na = F.filter(f => f.serial === a).length;
@@ -68,7 +68,7 @@ test('compare table flights equal raw counts', async ({ page }) => {
 });
 
 test('toc links target existing sections', async ({ page }) => {
-  await go(page);
+  await go(page); await page.locator('#tocwrap').evaluate(el => { el.open = true; });
   const hrefs = await page.locator('#toc a').evaluateAll(as => as.map(a => a.getAttribute('href')));
   for (const h of hrefs) {
     const id = h.slice(1);

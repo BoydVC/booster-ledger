@@ -225,4 +225,5 @@ if (new URLSearchParams(location.search).get('mode') === 'tv') {
   setInterval(() => { i = (i + 1) % list.length; tvCard(list, i); }, ms);
   document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') { i = (i + 1) % list.length; tvCard(list, i); } if (e.key === 'ArrowLeft') { i = (i + list.length - 1) % list.length; tvCard(list, i); } if (e.key === 'Escape') location.search = ''; });
 }
+(() => { const toc = document.getElementById('tocwrap'); if (toc && matchMedia('(max-width: 899px)').matches) toc.open = false; })();
 document.body.dataset.ready = '1';
