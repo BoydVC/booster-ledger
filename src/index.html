@@ -5,7 +5,8 @@
 <section class="controls"><input id="q" placeholder="Search serial or mission" aria-label="search"><select id="status" aria-label="status"><option value="all">All statuses</option></select>
 <select id="sort" aria-label="sort"><option value="flights">Most flown</option><option value="first">First flight</option><option value="newest">Newest</option></select>
 <label class="chk"><input type="checkbox" id="fh"> Falcon Heavy only</label>
-<button id="csv" aria-label="CSV: download the boosters shown">⬇ CSV</button>
+<select id="lt" aria-label="landing type"><option value="all">Any landing type</option><option value="ASDS">ASDS (droneship)</option><option value="RTLS">RTLS (land)</option><option value="Ocean">Ocean</option><option value="EXP">Expended</option></select>
+<button id="csv" aria-label="CSV: download the boosters shown">⬇ CSV</button><button id="json" aria-label="JSON: download the boosters shown">{} JSON</button>
 <button id="share" aria-label="Link: copy a link to this view">🔗 Link</button>
 <a id="tvlink" href="?mode=tv">📺 TV mode</a>
 <button id="play">▶ Replay the years</button>

@@ -148,12 +148,12 @@ export function spotsFleet(flights) {
 export function parseState(search, serials = []) {
   const p = new URLSearchParams(search || ''), ok = s => (s && serials.includes(s.toUpperCase())) ? s.toUpperCase() : null;
   const sort = p.get('sort'), status = p.get('status');
-  return { q: (p.get('q') || '').slice(0, 12), status: status && /^[a-z]+$/.test(status) ? status : 'all', sort: sort && Object.hasOwn(SORTS, sort) ? sort : 'flights', a: ok(p.get('a')), b: ok(p.get('b')), fh: p.get('fh') === '1' };
+  const lt = p.get('lt'), year = p.get('y'); return { q: (p.get('q') || '').slice(0, 40), status: status && /^[a-z]+$/.test(status) ? status : 'all', sort: sort && Object.hasOwn(SORTS, sort) ? sort : 'flights', a: ok(p.get('a')), b: ok(p.get('b')), fh: p.get('fh') === '1', lt: LANDING_TYPES.includes(lt) || lt === 'Other' ? lt : 'all', y: year && /^\d{4}$/.test(year) ? +year : null };
 }
 export function serializeState(s) {
   const p = new URLSearchParams();
   if (s.q) p.set('q', s.q); if (s.status && s.status !== 'all') p.set('status', s.status); if (s.sort && s.sort !== 'flights') p.set('sort', s.sort);
-  if (s.fh) p.set('fh', '1'); if (s.a) p.set('a', s.a); if (s.b) p.set('b', s.b);
+  if (s.fh) p.set('fh', '1'); if (s.lt && s.lt !== 'all') p.set('lt', s.lt); if (s.y) p.set('y', String(s.y)); if (s.a) p.set('a', s.a); if (s.b) p.set('b', s.b);
   const q = p.toString(); return q ? '?' + q : '';
 }
 
@@ -277,4 +277,9 @@ export function turnaroundHistogram(flights, bin = 10, cap = 200) {
   }
   if (overflow.count) buckets.push(overflow);
   return buckets;
+}
+
+export function serialsWithLandingType(flights, lt) {
+  if (!lt || lt === 'all') return null;
+  return new Set(flights.filter(f => landingType(f) === lt).map(f => f.serial));
 }

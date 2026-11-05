@@ -81,7 +81,7 @@ function spots() {
   $('spottable').innerHTML = '<tr><th>Spot</th><th>Type</th><th>Landed / tried</th><th></th></tr>' + L.spotsFleet(FL).map(x => `<tr data-w="${esc(x.where)}"><td>${esc(x.name)} (${esc(x.where)})</td><td>${esc(x.type)}</td><td>${x.success}/${x.attempts}</td><td><span class="bar"><i style="width:${100 * x.success / x.attempts}%"></i></span></td></tr>`).join('');
 }
 function syncUrl() {
-  const q = L.serializeState({ q: $('q').value, status: $('status').value, sort: $('sort').value, fh: $('fh').checked, a: $('ca').value, b: $('cb').value });
+  const y = cutoff === Infinity ? null : new Date(cutoff - 1).getUTCFullYear(); const q = L.serializeState({ q: $('q').value, status: $('status').value, sort: $('sort').value, fh: $('fh').checked, lt: $('lt').value, y, a: $('ca').value, b: $('cb').value });
   history.replaceState(null, '', location.pathname + q + ($('drawer').open ? location.hash : ''));
 }
 function open(s) {
@@ -98,17 +98,22 @@ function open(s) {
   if (!$('drawer').open) $('drawer').showModal();
   $('close').focus({ preventScroll: true }); $('drawer').scrollTop = 0;
 }
-function current() { return L.filterWithMissions(all, FL, { q: $('q').value, status: $('status').value }).filter(b => !$('fh').checked || HEAVY.has(b.serial)); }
+function current() {
+  let bs = L.filterWithMissions(all, FL, { q: $('q').value, status: $('status').value }).filter(b => !$('fh').checked || HEAVY.has(b.serial));
+  const lt = $('lt').value; if (lt && lt !== 'all') { const keep = L.serialsWithLandingType(FL, lt); bs = bs.filter(b => keep.has(b.serial)); }
+  return bs;
+}
 function render() { const bs = L.asOf(current(), FL, cutoff); stats(bs); fate(bs); lanes(bs); lists(bs); }
 for (const k of Object.keys(L.statusCounts(all))) $('status').insertAdjacentHTML('beforeend', `<option value="${esc(k)}">${esc(k)}</option>`);
 const opts = L.sortBy(all, 'flights').map(b => `<option>${esc(b.serial)}</option>`).join('');
 $('ca').innerHTML = $('cb').innerHTML = opts; $('ca').selectedIndex = 0; $('cb').selectedIndex = 1;
 const st = L.parseState(location.search, all.map(b => b.serial));
-$('q').value = st.q; if ([...$('status').options].some(o => o.value === st.status)) $('status').value = st.status; $('sort').value = st.sort; $('fh').checked = st.fh;
+$('q').value = st.q; if ([...$('status').options].some(o => o.value === st.status)) $('status').value = st.status; $('sort').value = st.sort; $('fh').checked = st.fh; if (st.lt) $('lt').value = st.lt;
 if (st.a) $('ca').value = st.a; if (st.b) $('cb').value = st.b;
 $('ca').onchange = $('cb').onchange = () => { cmp(); syncUrl(); };
-$('q').oninput = $('status').onchange = $('sort').onchange = $('fh').onchange = () => { render(); syncUrl(); };
+$('q').oninput = $('status').onchange = $('sort').onchange = $('fh').onchange = $('lt').onchange = () => { render(); syncUrl(); };
 $('csv').onclick = () => { const cols = ['serial', 'status', 'flights', 'landings_ok', 'landings_attempted', 'first', 'last', 'source']; const blob = new Blob([L.toCSV(L.sortBy(current(), $('sort').value), cols)], { type: 'text/csv' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'booster-ledger.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); };
+$('json').onclick = () => { const rows = L.sortBy(current(), $('sort').value).map(b => ({ serial: b.serial, status: b.status, block: L.blockOf(b.details, b.serial), flights: b.flights, landings_ok: b.landings_ok, landings_attempted: b.landings_attempted, first: b.first, last: b.last, source: b.source })); const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), boosters: rows }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'booster-ledger.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); };
 $('share').onclick = async () => { syncUrl(); try { await navigator.clipboard.writeText(location.href); $('share').textContent = '✓ Copied'; } catch { $('share').textContent = '✓ In address bar'; } setTimeout(() => $('share').textContent = '🔗 Link', 1500); }; $('close').onclick = () => $('drawer').close();
 let playing = false;
 $('play').onclick = async () => {
@@ -162,6 +167,7 @@ function setCutoffYear(y) {
 }
 $('scrub').min = '0'; $('scrub').max = String(Y1 - Y0 + 1); $('scrub').value = String(Y1 - Y0 + 1);
 $('scrub').oninput = () => { const v = +$('scrub').value; setCutoffYear(v > Y1 - Y0 ? null : Y0 + v); };
+if (st.y != null && st.y >= Y0 && st.y <= Y1) setCutoffYear(st.y);
 
 let focusIdx = 0;
 function ordered() { return L.sortBy(current(), $('sort').value); }
@@ -171,7 +177,7 @@ function stepBooster(dir) {
   open(rows[focusIdx].serial);
 }
 
-axis(); render(); recordsPanel(); trend(); years(); spots(); pads(); prog(); cmp(); fleet(); rate(); heat(); hist();
+if (st.y != null && st.y >= Y0 && st.y <= Y1) { /* applied after scrubber init below */ } axis(); render(); recordsPanel(); trend(); years(); spots(); pads(); prog(); cmp(); fleet(); rate(); heat(); hist();
 const lw = $('lanewrap'); if (lw.scrollWidth > lw.clientWidth) lw.scrollLeft = lw.scrollWidth; // newest years in view on narrow screens
 const deep = L.serialFromHash(location.hash); if (deep) open(deep);
 function tvCard(list, i) {

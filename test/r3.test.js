@@ -14,11 +14,11 @@ describe('spotsFleet', () => {
 });
 describe('URL state', () => {
   const S = ['B1067', 'B1058'];
-  it('defaults', () => expect(L.parseState('', S)).toEqual({ q: '', status: 'all', sort: 'flights', a: null, b: null, fh: false }));
-  it('round trip', () => { const s = { q: '106', status: 'lost', sort: 'newest', a: 'B1067', b: 'B1058', fh: true }; expect(L.parseState(L.serializeState(s), S)).toEqual(s); });
+  it('defaults', () => expect(L.parseState('', S)).toEqual({ q: '', status: 'all', sort: 'flights', a: null, b: null, fh: false, lt: 'all', y: null }));
+  it('round trip', () => { const s = { q: '106', status: 'lost', sort: 'newest', a: 'B1067', b: 'B1058', fh: true, lt: 'ASDS', y: 2020 }; expect(L.parseState(L.serializeState(s), S)).toEqual(s); });
   it('rejects unknown serial & sort', () => expect(L.parseState('?a=B9999&sort=evil', S)).toMatchObject({ a: null, sort: 'flights' }));
   it('rejects odd status', () => expect(L.parseState('?status=<x>', S).status).toBe('all'));
-  it('caps q length', () => expect(L.parseState('?q=' + 'x'.repeat(100), S).q).toHaveLength(12));
+  it('caps q length', () => expect(L.parseState('?q=' + 'x'.repeat(100), S).q).toHaveLength(40));
   it('defaults serialize to empty', () => expect(L.serializeState({ q: '', status: 'all', sort: 'flights' })).toBe(''));
   it('case-insensitive serial', () => expect(L.parseState('?a=b1067', S).a).toBe('B1067'));
 });
