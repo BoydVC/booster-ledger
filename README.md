@@ -9,7 +9,7 @@ Every Falcon first stage with a B10xx serial on one screen: how many times it fl
 ## What's on the screen
 - **Lifelines:** one bar per booster, from its first flight to its last. Blue is active, gold expended, red lost or destroyed, and the number is its flight count. Sort by most flown, first flight or newest; filter by status, Falcon Heavy, or landing type (ASDS / RTLS / Ocean / expended); search by serial or mission name.
 - **As-of scrubber + Replay the years** (Space): drag the year slider or press Replay to watch the fleet grow. Stats, bars and leaderboards update as of each year. The year is shareable in the URL (`?y=2021`).
-- **Booster drawer** (click a bar, press `j`/`k`, or open `#B1067`): every flight with its mission, date, landing spot and source link; a mission timeline; days-between sparkline; landing breakdown; rank, block version and landing rate. Launch failures and Falcon Heavy flights are tagged.
+- **Booster drawer** (click a bar, press `j`/`k`, or open `#B1067`): every flight with its mission, date, landing spot and source link; a mission timeline; days-between sparkline; landing breakdown; rank, block version and landing rate; a per-booster flights CSV. Launch failures and Falcon Heavy flights are tagged.
 - **Records:** first reflight, fastest turnaround, most flights, every launch failure, and the busiest droneship. Each one links its source.
 - **Firsts:** a dated list of fleet firsts (first ASDS, first RTLS, first Heavy, first N-flight booster…) with source links.
 - **Active fleet over time:** how many boosters had flown by each year-end and were still flying, plus a Block 5 / Full Thrust / v1.0 legend.

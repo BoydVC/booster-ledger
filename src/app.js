@@ -98,7 +98,7 @@ function open(s) {
   const b = all.find(x => x.serial === s); if (!b) return;
   const fs = L.flightsFor(FL, s), lr = L.landingRate(b), fpy = L.flightsPerYear(b), lb = L.landingBreakdown(fs);
   history.replaceState(null, '', '#' + s);
-  $('detail').innerHTML = `<h2 id="dtitle">${esc(b.serial)}</h2><p>Status: <b>${esc(b.status)}</b> · ${esc(L.blockOf(b.details, b.serial))} · #${L.rankOf(all, b.serial)} of ${all.length} by flights${lr != null ? ` · ${Math.round(lr * 100)}% landings` : ''}</p>
+  $('detail').innerHTML = `<h2 id="dtitle">${esc(b.serial)} <button type="button" id="dlink" class="mini" aria-label="Copy link to this booster">🔗</button></h2><p>Status: <b>${esc(b.status)}</b> · ${esc(L.blockOf(b.details, b.serial))} · #${L.rankOf(all, b.serial)} of ${all.length} by flights${lr != null ? ` · ${Math.round(lr * 100)}% landings` : ''}</p>
   <p>${b.flights} flights · ${b.landings_ok}/${b.landings_attempted ?? '?'} landings · first ${d10(b.first)} · last ${d10(b.last)}${fpy ? ` · ${fpy.toFixed(1)} flights/yr` : ''}</p>
   <p class="sub">${esc(b.details)}</p>${(() => { const hr = L.heavyRole(FL, b.serial); return hr ? `<p class="sub">Flew Falcon Heavy ${hr.flights}× · pads ${hr.pads.map(esc).join(', ')}</p>` : ''; })()}
   ${(() => { const g = L.gaps(fs); if (g.length < 2) return ''; return `<h3>Days between flights</h3><svg id="spark" viewBox="0 0 640 70" preserveAspectRatio="none"><polyline points="${C.sparkPoints(g)}" fill="none" stroke="#4fb3ff" stroke-width="2"/></svg><p class="sub">From ${Math.round(g[0].days)} days before flight 2 to ${Math.round(g.at(-1).days)} days before flight ${fs.length}; fastest ${Math.min(...g.map(x => x.days)).toFixed(1)}.</p>`; })()}${(() => { const r = C.timelineSVG(fs, { w: innerWidth < 700 ? 400 : 640 }); if (!r) return ''; return `<h3>Mission timeline</h3><svg id="tline" viewBox="${r.viewBox}" role="img" aria-label="mission timeline">${r.svg}</svg>`; })()}
@@ -107,6 +107,7 @@ function open(s) {
   <p><a href="${safeUrl(b.source)}" target="_blank" rel="noopener">Booster source record</a></p>`;
   if (!$('drawer').open) $('drawer').showModal();
   $('close').focus({ preventScroll: true }); $('drawer').scrollTop = 0;
+  const dl = $('dlink'); if (dl) dl.onclick = async () => { const url = location.origin + location.pathname + location.search + '#' + b.serial; try { await navigator.clipboard.writeText(url); dl.textContent = '✓'; } catch { dl.textContent = '#'; } setTimeout(() => dl.textContent = '🔗', 1200); };
   const df = $('dfcsv'); if (df) df.onclick = () => {
     const cols = ['n','net','mission','rocket','pad','landing_type','landing_loc','landing_success','launch_status','source'];
     const rows = fs.map(f => Object.fromEntries(cols.map(c => [c, f[c] ?? ''])));
