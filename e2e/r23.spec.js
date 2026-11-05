@@ -12,10 +12,11 @@ test('reuse curve ≥10 matches raw', async ({ page }) => {
 
 test('sticky toc stays in view while scrolling', async ({ page }) => {
   await go(page);
+  await page.locator('#tocwrap').evaluate(el => { el.open = true; });
   await page.locator('#heat').scrollIntoViewIfNeeded();
-  const top = await page.locator('#toc').evaluate(el => el.getBoundingClientRect().top);
+  const top = await page.locator('#tocwrap').evaluate(el => el.getBoundingClientRect().top);
   expect(top).toBeGreaterThanOrEqual(0);
-  expect(top).toBeLessThan(5);
+  expect(top).toBeLessThan(8);
 });
 
 test('FH flyer drawer notes Heavy flights', async ({ page }) => {

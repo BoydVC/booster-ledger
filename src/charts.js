@@ -24,7 +24,7 @@ export function yearsSVG(t, nowYear, { w = 640 } = {}) {
   t.forEach((p, i) => {
     let acc = 0; const x = pad + i * bw + bw * .15;
     for (const k of ['ASDS', 'RTLS', 'Ocean', 'EXP', 'Other']) { if (!p[k]) continue; g += `<rect class="seg" data-y="${p.year}" data-k="${k}" x="${x}" y="${y(acc + p[k])}" width="${bw * .7}" height="${y(acc) - y(acc + p[k])}" fill="${TCOL[k]}"><title>${p.year} ${k}: ${p[k]}</title></rect>`; acc += p[k]; }
-    g += `<text x="${x + bw * .35}" y="${y(p.total) - 5}" text-anchor="middle" fill="#e8edf5" font-size="11" class="tot" data-y="${p.year}">${p.total}</text><text x="${x + bw * .35}" y="${h - 10}" text-anchor="middle" fill="#8a96a8" font-size="11">${yl(p.year, short)}${ytd(p.year, nowYear)}</text>`;
+    const ty = y(p.total) - 5; const labelY = ty < 40 ? y(p.total) + 14 : ty; g += `<text x="${x + bw * .35}" y="${labelY}" text-anchor="middle" fill="#e8edf5" font-size="11" class="tot" data-y="${p.year}">${p.total}</text><text x="${x + bw * .35}" y="${h - 10}" text-anchor="middle" fill="#8a96a8" font-size="11">${yl(p.year, short)}${ytd(p.year, nowYear)}</text>`;
   });
   g += Object.entries(TCOL).slice(0, 4).map(([k, c], i) => `<rect x="${pad + i * (short ? 64 : 80)}" y="8" width="10" height="10" fill="${c}"/><text x="${pad + 14 + i * (short ? 64 : 80)}" y="17" fill="#8a96a8" font-size="11">${k}</text>`).join('');
   return { viewBox: `0 0 ${w} ${h}`, svg: g };

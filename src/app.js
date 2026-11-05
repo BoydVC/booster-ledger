@@ -66,9 +66,14 @@ function trend() { const r = C.trendSVG(L.turnaroundByYear(FL), NOWY, CW()); $('
 function cmpChart(sa, sb) { const r = C.cmpSVG(L.cumulative(FL, sa), L.cumulative(FL, sb), sa, sb, CW()); if (!r) return; $('cmpsvg').setAttribute('viewBox', r.viewBox); $('cmpsvg').innerHTML = r.svg; }
 function cmp() {
   const [a, b] = L.compare(all, FL, $('ca').value, $('cb').value); if (!a || !b) return; cmpChart(a.serial, b.serial);
-  const rows = [['Status', 'status'], ['Flights', 'flights'], ['Landings', 'landings'], ['First flight', 'first', d10], ['Last flight', 'last', d10],
+  const rows = [['Status', 'status'], ['Block', '_block'], ['Flights', 'flights'], ['Landings', 'landings'], ['First flight', 'first', d10], ['Last flight', 'last', d10],
     ['Median turnaround', 'medianGap', v => v == null ? '—' : v.toFixed(1) + ' d'], ['Fastest turnaround', 'fastestGap', v => v == null ? '—' : v.toFixed(1) + ' d'], ['Most-used landing spot', 'topSpot']];
-  $('ctable').innerHTML = `<tr><th></th><th>${esc(a.serial)}</th><th>${esc(b.serial)}</th></tr>` + rows.map(([k, f, fmt = v => v ?? '—']) => `<tr data-k="${f}"><th>${k}</th><td>${esc(fmt(a[f]))}</td><td>${esc(fmt(b[f]))}</td></tr>`).join('');
+  const block = s => L.blockOf(all.find(x => x.serial === s)?.details, s);
+  a._block = block(a.serial); b._block = block(b.serial);
+  const lbA = L.landingBreakdown(L.flightsFor(FL, a.serial)), lbB = L.landingBreakdown(L.flightsFor(FL, b.serial));
+  const spots = [...new Set([...lbA, ...lbB].map(x => x.where))].slice(0, 8);
+  $('ctable').innerHTML = `<tr><th></th><th>${esc(a.serial)}</th><th>${esc(b.serial)}</th></tr>` + rows.map(([k, f, fmt = v => v ?? '—']) => `<tr data-k="${f}"><th>${k}</th><td>${esc(fmt(a[f]))}</td><td>${esc(fmt(b[f]))}</td></tr>`).join('')
+    + spots.map(w => { const x = lbA.find(e => e.where === w), y = lbB.find(e => e.where === w); return `<tr data-k="spot-${esc(w)}"><th>${esc(w)}</th><td>${x ? `${x.success}/${x.attempts}` : '—'}</td><td>${y ? `${y.success}/${y.attempts}` : '—'}</td></tr>`; }).join('');
 }
 function years() { const r = C.yearsSVG(L.flightsByYear(FL), NOWY, CW()); $('yearsvg').setAttribute('viewBox', r.viewBox); $('yearsvg').innerHTML = r.svg; }
 function prog() {
