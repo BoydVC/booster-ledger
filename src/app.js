@@ -111,7 +111,7 @@ $('share').onclick = async () => { syncUrl(); try { await navigator.clipboard.wr
 let playing = false;
 $('play').onclick = async () => {
   if (playing) return; playing = true; $('play').disabled = true;
-  for (let y = Y0; y <= Y1; y++) { cutoff = Date.UTC(y + 1, 0); $('year').textContent = `${y} · ${L.activeAt(current(), cutoff).length} flying`; render(); await new Promise(r => setTimeout(r, 450)); }
+  for (let y = Y0; y <= Y1; y++) { cutoff = Date.UTC(y + 1, 0); $('year').textContent = `${y} · ${L.activeAt(current(), cutoff).length} flying`; render(); await new Promise(r => setTimeout(r, matchMedia('(prefers-reduced-motion: reduce)').matches ? 120 : 450)); }
   cutoff = Infinity; $('year').textContent = ''; render(); playing = false; $('play').disabled = false;
 };
 document.addEventListener('keydown', e => {
