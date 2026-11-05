@@ -134,6 +134,14 @@ document.addEventListener('keydown', e => {
     stepBooster(e.key === 'j' ? 1 : -1);
     return;
   }
+  if ((e.key === '[' || e.key === ']') && !$('drawer').open) {
+    e.preventDefault();
+    const max = Y1 - Y0 + 1; let v = +$('scrub').value;
+    v = e.key === '[' ? Math.max(0, v - 1) : Math.min(max, v + 1);
+    setCutoffYear(v > Y1 - Y0 ? null : Y0 + v);
+    syncUrl();
+    return;
+  }
   if ($('drawer').open) return;
   if (e.key === '/') { e.preventDefault(); $('q').focus(); }
   else if (e.key === ' ' && !e.target.matches('button,.lane')) { e.preventDefault(); $('play').click(); }
