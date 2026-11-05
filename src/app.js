@@ -166,4 +166,19 @@ $('src').innerHTML = `Data: <a href="https://thespacedevs.com/llapi">The Space D
 axis(); render(); recordsPanel(); trend(); years(); spots(); pads(); prog(); cmp();
 const lw = $('lanewrap'); if (lw.scrollWidth > lw.clientWidth) lw.scrollLeft = lw.scrollWidth; // newest years in view on narrow screens
 const deep = L.serialFromHash(location.hash); if (deep) open(deep);
+function tvCard(list, i) {
+  const b = list[i], fs = L.flightsFor(FL, b.serial), g = L.gaps(fs), lb = L.landingBreakdown(fs)[0];
+  const mx = Math.max(1, ...g.map(x => x.days)), pts = g.map((x, k) => `${(10 + 980 * k / Math.max(1, g.length - 1)).toFixed(1)},${(110 - 95 * x.days / mx).toFixed(1)}`).join(' ');
+  $('tv').innerHTML = `<div class="card" data-s="${esc(b.serial)}"><div class="foot"><span>BOOSTER LEDGER · most-flown Falcon boosters</span><span>${i + 1} / ${list.length}</span></div>
+  <h1>${esc(b.serial)}</h1><p class="big"><b>${b.flights}</b> flights · <b>${b.landings_ok}</b> landings · ${esc(b.status)}</p>
+  <p class="big">First flew ${d10(b.first)}${fs[0] ? ' on ' + esc(fs[0].mission) : ''}${lb ? ` · lands most on <b>${esc(lb.where)}</b>` : ''}</p>
+  ${g.length > 1 ? `<svg viewBox="0 0 1000 120" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="#4fb3ff" stroke-width="3"/></svg><p class="big">Days between flights: ${Math.round(g[0].days)} → ${Math.round(g.at(-1).days)} · fastest ${Math.min(...g.map(x => x.days)).toFixed(1)}</p>` : ''}
+  <div class="foot"><span>Data: The Space Devs Launch Library 2, snapshot ${d10(snap.fetched_at)}</span><span class="dots">${list.map((_, k) => `<span class="${k === i ? 'on' : ''}"></span>`).join('')}</span></div></div>`;
+}
+if (new URLSearchParams(location.search).get('mode') === 'tv') {
+  const list = L.leaderboard(all, 10), ms = Math.max(2000, Number(new URLSearchParams(location.search).get('every')) || 8000); let i = 0;
+  document.body.classList.add('tv'); $('tv').hidden = false; tvCard(list, 0);
+  setInterval(() => { i = (i + 1) % list.length; tvCard(list, i); }, ms);
+  document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') { i = (i + 1) % list.length; tvCard(list, i); } if (e.key === 'ArrowLeft') { i = (i + list.length - 1) % list.length; tvCard(list, i); } if (e.key === 'Escape') location.search = ''; });
+}
 document.body.dataset.ready = '1';

@@ -7,6 +7,7 @@
 <label class="chk"><input type="checkbox" id="fh"> Falcon Heavy only</label>
 <button id="csv" aria-label="CSV: download the boosters shown">⬇ CSV</button>
 <button id="share" aria-label="Link: copy a link to this view">🔗 Link</button>
+<a id="tvlink" href="?mode=tv">📺 TV mode</a>
 <button id="play">▶ Replay the years</button><span id="year" aria-live="polite"></span></section>
 <main><section><h2>Lifelines</h2><div id="lanewrap"><svg id="axis" aria-hidden="true"></svg><svg id="lanes" role="group" aria-label="booster lifelines, one bar per booster; press Enter on a bar for details"></svg></div></section>
 <aside><h2>Records</h2><div id="records"></div><h2>Most flown</h2><ol id="top"></ol><h2>Fastest turnaround</h2><ol id="fast"></ol></aside></main>
@@ -17,4 +18,4 @@
 <section id="cmp"><h2>Compare two boosters</h2><select id="ca" aria-label="booster A"></select> vs <select id="cb" aria-label="booster B"></select><svg id="cmpsvg" role="img" aria-label="cumulative flights of both boosters over time"></svg><table id="ctable"></table></section>
 </div>
 <dialog id="drawer" aria-labelledby="dtitle"><button id="close" aria-label="Close details">✕ Close</button><div id="detail"></div></dialog>
-<footer id="src"></footer><noscript><p>Booster Ledger needs JavaScript. The data is in <a href="boosters.json">boosters.json</a> and <a href="flights.json">flights.json</a>.</p></noscript><div id="err" hidden></div><script type="module" src="app.js"></script></body></html>
+<footer id="src"></footer><noscript><p>Booster Ledger needs JavaScript. The data is in <a href="boosters.json">boosters.json</a> and <a href="flights.json">flights.json</a>.</p></noscript><div id="err" hidden></div><div id="tv" hidden aria-live="polite"></div><script type="module" src="app.js"></script></body></html>
