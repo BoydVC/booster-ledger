@@ -5,6 +5,7 @@
 TokenMax final-day burn rounds 17–32 on branch `v0.2`.
 
 ### Added
+- Cumulative fleet flights chart; `?` keyboard help dialog
 - Year scrubber + `[`/`]` nudge; Space replay shares the same cutoff
 - Mission-name search; landing-type filter; quick Active/Expended/All chips
 - Drawer mission timeline SVG; block version; Falcon Heavy flight note

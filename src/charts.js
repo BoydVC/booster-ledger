@@ -184,3 +184,38 @@ export function recoveredSVG(series, nowYear, { w = 640 } = {}) {
   series.forEach((p, i) => g += `<g data-y="${p.year}"><circle cx="${x(i)}" cy="${y(p.share)}" r="3" fill="#5fd38d"><title>${p.year}: ${Math.round(p.share * 100)}% recovered (${p.recovered}/${p.total})</title></circle><text x="${x(i)}" y="${h - 10}" text-anchor="middle" fill="#8a96a8" font-size="11">${yl(p.year, short)}${ytd(p.year, nowYear)}</text></g>`);
   return { viewBox: `0 0 ${w} ${h}`, svg: g };
 }
+export function cumFleetSVG(pts, { w = 640 } = {}) {
+  if (!pts.length) return null;
+  const short = w < 500;
+  const h = 200, pad = 44, t0 = pts[0].t, t1 = pts.at(-1).t, m = pts.at(-1).n;
+  const x = p => pad + (w - pad * 2) * (p.t - t0) / ((t1 - t0) || 1);
+  const y = p => h - 28 - (h - 50) * p.n / m;
+  let g = '';
+  for (let yy = new Date(t0).getUTCFullYear() + 1; yy <= new Date(t1).getUTCFullYear(); yy++) {
+    const xx = x({ t: Date.UTC(yy, 0) });
+    g += `<line x1="${xx}" x2="${xx}" y1="10" y2="${h - 24}" stroke="#1e2838"/><text x="${xx + 2}" y="${h - 8}" fill="#8a96a8" font-size="11">${yl(yy, short)}</text>`;
+  }
+  g += `<path d="${L.linePath(pts, x, y)}" fill="none" stroke="#4fb3ff" stroke-width="2.5"/>`;
+  g += `<text x="${pad}" y="18" fill="#e8edf5" font-size="12">${m} flights cumulative</text>`;
+  return { viewBox: `0 0 ${w} ${h}`, svg: g };
+}
+export function matrixSVG(m, { w = 640 } = {}) {
+  const { years, types, cells } = m;
+  const short = w < 500;
+  const cellW = Math.min(36, (w - 70) / years.length), cellH = 22, pad = 54;
+  const h = pad + types.length * (cellH + 4) + 20;
+  let g = years.map((y, i) => `<text x="${pad + i * cellW + cellW / 2}" y="14" text-anchor="middle" fill="#8a96a8" font-size="10">${yl(y, short)}</text>`).join('');
+  types.forEach((t, ti) => {
+    const yy = 24 + ti * (cellH + 4);
+    g += `<text x="4" y="${yy + cellH - 6}" fill="#8a96a8" font-size="11">${t}</text>`;
+    years.forEach((y, yi) => {
+      const e = cells[`${y}:${t}`];
+      const rate = e.attempts ? e.success / e.attempts : null;
+      const fill = rate == null || e.attempts === 0 ? '#141b27' : `rgba(95,211,141,${(0.15 + 0.85 * rate).toFixed(3)})`;
+      const label = t === 'EXP' ? String(e.attempts) : (e.attempts ? `${Math.round(rate * 100)}%` : '');
+      g += `<rect data-y="${y}" data-t="${t}" x="${pad + yi * cellW}" y="${yy}" width="${cellW - 1}" height="${cellH}" fill="${fill}" rx="2"><title>${y} ${t}: ${t === 'EXP' ? e.attempts + ' expended' : `${e.success}/${e.attempts} (${label})`}</title></rect>`;
+      if (label && cellW > 22) g += `<text x="${pad + yi * cellW + cellW / 2}" y="${yy + cellH - 6}" text-anchor="middle" fill="#e8edf5" font-size="9">${label}</text>`;
+    });
+  });
+  return { viewBox: `0 0 ${w} ${h}`, svg: g };
+}

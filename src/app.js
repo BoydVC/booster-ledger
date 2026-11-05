@@ -152,6 +152,9 @@ document.addEventListener('keydown', e => {
     stepBooster(e.key === 'j' ? 1 : -1);
     return;
   }
+  if (e.key === '?' && !e.target.matches('input,select,textarea')) {
+    e.preventDefault(); $('help')?.showModal(); return;
+  }
   if ((e.key === '[' || e.key === ']') && !$('drawer').open) {
     e.preventDefault();
     const max = Y1 - Y0 + 1; let v = +$('scrub').value;
@@ -166,7 +169,7 @@ document.addEventListener('keydown', e => {
 });
 $('drawer').addEventListener('close', () => history.replaceState(null, '', location.pathname + location.search));
 addEventListener('hashchange', () => { const s = L.serialFromHash(location.hash); if (s) open(s); });
-let rz, lastCW = CW().w; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { render(); if (CW().w !== lastCW) { lastCW = CW().w; trend(); years(); prog(); cmp(); fleet(); rate(); heat(); hist(); reuse(); padsChart(); recoveredChart(); } }, 120); });
+let rz, lastCW = CW().w; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { render(); if (CW().w !== lastCW) { lastCW = CW().w; trend(); years(); prog(); cmp(); cumFleet(); fleet(); matrixChart(); rate(); heat(); hist(); reuse(); padsChart(); recoveredChart(); } }, 120); });
 $('src').innerHTML = `Data: <a href="https://thespacedevs.com/llapi">The Space Devs Launch Library 2</a> — boosters snapshot ${d10(snap.fetched_at)}, flights snapshot ${d10(fsnap.fetched_at)}. Unofficial; not affiliated with SpaceX.`;
 function padsChart() {
   const r = C.padSVG(L.padCadence(FL), NOWY, CW()); if (!r) return;
@@ -188,9 +191,17 @@ function hist() {
   const r = C.histSVG(L.turnaroundHistogram(FL, 10), CW()); if (!r) return;
   $('histsvg').setAttribute('viewBox', r.viewBox); $('histsvg').innerHTML = r.svg;
 }
+function matrixChart() {
+  const r = C.matrixSVG(L.landingMatrix(FL), CW()); if (!r) return;
+  $('matrixsvg').setAttribute('viewBox', r.viewBox); $('matrixsvg').innerHTML = r.svg;
+}
 function rate() {
   const r = C.rateSVG(L.landingSuccessByYear(FL), NOWY, CW()); if (!r) return;
   $('ratesvg').setAttribute('viewBox', r.viewBox); $('ratesvg').innerHTML = r.svg;
+}
+function cumFleet() {
+  const r = C.cumFleetSVG(L.cumulativeFleetFlights(FL), CW()); if (!r) return;
+  $('cumfleetsvg').setAttribute('viewBox', r.viewBox); $('cumfleetsvg').innerHTML = r.svg;
 }
 function fleet() {
   const series = L.fleetSizeByYear(all, FL, Y0, Y1);
@@ -215,7 +226,7 @@ function stepBooster(dir) {
   open(rows[focusIdx].serial);
 }
 
-if (st.y != null && st.y >= Y0 && st.y <= Y1) { /* applied after scrubber init below */ } axis(); render(); recordsPanel(); firstsPanel(); trend(); years(); spots(); pads(); prog(); cmp(); fleet(); rate(); heat(); hist(); reuse(); padsChart(); recoveredChart();
+if (st.y != null && st.y >= Y0 && st.y <= Y1) { /* applied after scrubber init below */ } axis(); render(); recordsPanel(); firstsPanel(); trend(); years(); spots(); pads(); prog(); cmp(); cumFleet(); fleet(); matrixChart(); rate(); heat(); hist(); reuse(); padsChart(); recoveredChart();
 const lw = $('lanewrap'); if (lw.scrollWidth > lw.clientWidth) lw.scrollLeft = lw.scrollWidth; // newest years in view on narrow screens
 const deep = L.serialFromHash(location.hash); if (deep) open(deep);
 function tvCard(list, i) {
@@ -234,4 +245,5 @@ if (new URLSearchParams(location.search).get('mode') === 'tv') {
   document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') { i = (i + 1) % list.length; tvCard(list, i); } if (e.key === 'ArrowLeft') { i = (i + list.length - 1) % list.length; tvCard(list, i); } if (e.key === 'Escape') location.search = ''; });
 }
 (() => { const toc = document.getElementById('tocwrap'); if (toc && matchMedia('(max-width: 899px)').matches) toc.open = false; })();
+$('helpclose') && ($('helpclose').onclick = () => $('help').close());
 document.body.dataset.ready = '1';

@@ -336,3 +336,30 @@ export function firsts(flights, boosters) {
   }
   return out.sort((a, b) => a.net.localeCompare(b.net));
 }
+export function cumulativeFleetFlights(flights) {
+  const byDay = {};
+  for (const f of flights) {
+    const d = f.net.slice(0, 10);
+    byDay[d] = (byDay[d] || 0) + 1;
+  }
+  const days = Object.keys(byDay).sort();
+  let acc = 0;
+  return days.map(d => { acc += byDay[d]; return { t: Date.parse(d + 'T00:00:00Z'), n: acc, day: d }; });
+}
+export function landingMatrix(flights) {
+  const years = [...new Set(flights.map(f => +f.net.slice(0, 4)))].sort((a, b) => a - b);
+  const types = ['ASDS', 'RTLS', 'Ocean', 'EXP'];
+  const cells = {};
+  for (const y of years) for (const t of types) cells[`${y}:${t}`] = { year: y, type: t, attempts: 0, success: 0 };
+  for (const f of flights) {
+    const y = +f.net.slice(0, 4);
+    const t = landingType(f);
+    if (!types.includes(t)) continue;
+    const e = cells[`${y}:${t}`];
+    if (!f.landing_attempt && t !== 'EXP') continue;
+    if (t === 'EXP') { e.attempts++; continue; }
+    if (!f.landing_attempt) continue;
+    e.attempts++; if (f.landing_success) e.success++;
+  }
+  return { years, types, cells };
+}
