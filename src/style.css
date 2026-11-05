@@ -18,3 +18,4 @@ dialog{max-width:680px;width:92vw;max-height:86vh}.tl{max-height:40vh;overflow:a
 .tl td:nth-child(2){white-space:nowrap}@media (max-width:700px){#lanewrap{max-height:60vh}dialog{padding:12px}}
 main>*{min-width:0}
 @media (max-width:700px){#stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.stat{min-width:0;padding:6px 8px;font-size:12px}.stat b{font-size:18px}}
+#years,#spots{margin-top:22px}#yearsvg{width:100%;max-width:1000px;background:#0f1520;border-radius:10px}.bar{width:120px;height:8px;background:#1e2838;border-radius:4px;display:inline-block;vertical-align:middle;overflow:hidden}.bar i{display:block;height:100%;background:#5fd38d}

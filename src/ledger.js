@@ -62,7 +62,7 @@ export const SORTS = {
   newest: (a, b) => b.firstMs - a.firstMs || a.serial.localeCompare(b.serial),
 };
 export function sortBy(bs, key = 'flights') {
-  if (!SORTS[key]) throw new Error(`unknown sort ${key}`);
+  if (!Object.hasOwn(SORTS, key)) throw new Error(`unknown sort ${key}`);
   return [...bs].sort(SORTS[key]);
 }
 export function rankOf(bs, serial) {
@@ -132,4 +132,27 @@ export function compare(boosters, flights, a, b) {
       first: fs[0]?.net || null, last: fs.at(-1)?.net || null, medianGap: median(gs), fastestGap: gs.length ? Math.min(...gs) : null,
       topSpot: landingBreakdown(fs)[0]?.where || null };
   });
+}
+
+export const LANDING_TYPES = ['ASDS', 'RTLS', 'EXP', 'Ocean'];
+export function landingType(f) { return !f.landing_attempt ? 'EXP' : (LANDING_TYPES.includes(f.landing_type) ? f.landing_type : 'Other'); }
+export function flightsByYear(flights) {
+  const by = {};
+  for (const f of flights) { const y = +f.net.slice(0, 4), e = (by[y] ||= { year: y, total: 0, landed: 0, ASDS: 0, RTLS: 0, EXP: 0, Ocean: 0, Other: 0 }); e.total++; e[landingType(f)]++; if (f.landing_success) e.landed++; }
+  return Object.values(by).sort((a, b) => a.year - b.year);
+}
+export function spotsFleet(flights) {
+  return landingBreakdown(flights.filter(f => f.landing_attempt));
+}
+// Shareable view state in the query string. Unknown/invalid values fall back to defaults.
+export function parseState(search, serials = []) {
+  const p = new URLSearchParams(search || ''), ok = s => (s && serials.includes(s.toUpperCase())) ? s.toUpperCase() : null;
+  const sort = p.get('sort'), status = p.get('status');
+  return { q: (p.get('q') || '').slice(0, 12), status: status && /^[a-z]+$/.test(status) ? status : 'all', sort: sort && Object.hasOwn(SORTS, sort) ? sort : 'flights', a: ok(p.get('a')), b: ok(p.get('b')) };
+}
+export function serializeState(s) {
+  const p = new URLSearchParams();
+  if (s.q) p.set('q', s.q); if (s.status && s.status !== 'all') p.set('status', s.status); if (s.sort && s.sort !== 'flights') p.set('sort', s.sort);
+  if (s.a) p.set('a', s.a); if (s.b) p.set('b', s.b);
+  const q = p.toString(); return q ? '?' + q : '';
 }

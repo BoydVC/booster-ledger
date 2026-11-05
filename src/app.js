@@ -70,6 +70,26 @@ function cmp() {
     ['Median turnaround', 'medianGap', v => v == null ? '—' : v.toFixed(1) + ' d'], ['Fastest turnaround', 'fastestGap', v => v == null ? '—' : v.toFixed(1) + ' d'], ['Most-used landing spot', 'topSpot']];
   $('ctable').innerHTML = `<tr><th></th><th>${esc(a.serial)}</th><th>${esc(b.serial)}</th></tr>` + rows.map(([k, f, fmt = v => v ?? '—']) => `<tr data-k="${f}"><th>${k}</th><td>${esc(fmt(a[f]))}</td><td>${esc(fmt(b[f]))}</td></tr>`).join('');
 }
+const TCOL = { ASDS: '#4fb3ff', RTLS: '#5fd38d', Ocean: '#b48cff', EXP: '#ffc94f', Other: '#8a96a8' };
+function years() {
+  const t = L.flightsByYear(FL), w = 900, h = 260, pad = 44, max = Math.max(...t.map(x => x.total)), bw = (w - pad * 2) / t.length;
+  const y = v => h - 30 - (h - 60) * v / max;
+  let g = '';
+  t.forEach((p, i) => {
+    let acc = 0; const x = pad + i * bw + bw * .15;
+    for (const k of ['ASDS', 'RTLS', 'Ocean', 'EXP', 'Other']) { if (!p[k]) continue; g += `<rect class="seg" data-y="${p.year}" data-k="${k}" x="${x}" y="${y(acc + p[k])}" width="${bw * .7}" height="${y(acc) - y(acc + p[k])}" fill="${TCOL[k]}"><title>${p.year} ${k}: ${p[k]}</title></rect>`; acc += p[k]; }
+    g += `<text x="${x + bw * .35}" y="${y(p.total) - 5}" text-anchor="middle" fill="#e8edf5" font-size="11" class="tot" data-y="${p.year}">${p.total}</text><text x="${x + bw * .35}" y="${h - 10}" text-anchor="middle" fill="#8a96a8" font-size="11">${p.year}${p.year === new Date(fsnap.fetched_at).getUTCFullYear() ? ' YTD' : ''}</text>`;
+  });
+  g += Object.entries(TCOL).slice(0, 4).map(([k, c], i) => `<rect x="${pad + i * 80}" y="8" width="10" height="10" fill="${c}"/><text x="${pad + 14 + i * 80}" y="17" fill="#8a96a8" font-size="11">${k}</text>`).join('');
+  $('yearsvg').setAttribute('viewBox', `0 0 ${w} ${h}`); $('yearsvg').innerHTML = g;
+}
+function spots() {
+  $('spottable').innerHTML = '<tr><th>Spot</th><th>Type</th><th>Landed / tried</th><th></th></tr>' + L.spotsFleet(FL).map(x => `<tr data-w="${esc(x.where)}"><td>${esc(x.name)} (${esc(x.where)})</td><td>${esc(x.type)}</td><td>${x.success}/${x.attempts}</td><td><span class="bar"><i style="width:${100 * x.success / x.attempts}%"></i></span></td></tr>`).join('');
+}
+function syncUrl() {
+  const q = L.serializeState({ q: $('q').value, status: $('status').value, sort: $('sort').value, a: $('ca').value, b: $('cb').value });
+  history.replaceState(null, '', location.pathname + q + ($('drawer').open ? location.hash : ''));
+}
 function open(s) {
   const b = all.find(x => x.serial === s); if (!b) return;
   const fs = L.flightsFor(FL, s), lr = L.landingRate(b), fpy = L.flightsPerYear(b), lb = L.landingBreakdown(fs);
@@ -86,8 +106,12 @@ function render() { const bs = L.filter(all, { q: $('q').value, status: $('statu
 for (const k of Object.keys(L.statusCounts(all))) $('status').insertAdjacentHTML('beforeend', `<option value="${esc(k)}">${esc(k)}</option>`);
 const opts = L.sortBy(all, 'flights').map(b => `<option>${esc(b.serial)}</option>`).join('');
 $('ca').innerHTML = $('cb').innerHTML = opts; $('ca').selectedIndex = 0; $('cb').selectedIndex = 1;
-$('ca').onchange = $('cb').onchange = cmp;
-$('q').oninput = $('status').onchange = $('sort').onchange = render; $('close').onclick = () => $('drawer').close();
+const st = L.parseState(location.search, all.map(b => b.serial));
+$('q').value = st.q; if ([...$('status').options].some(o => o.value === st.status)) $('status').value = st.status; $('sort').value = st.sort;
+if (st.a) $('ca').value = st.a; if (st.b) $('cb').value = st.b;
+$('ca').onchange = $('cb').onchange = () => { cmp(); syncUrl(); };
+$('q').oninput = $('status').onchange = $('sort').onchange = () => { render(); syncUrl(); };
+$('share').onclick = async () => { syncUrl(); try { await navigator.clipboard.writeText(location.href); $('share').textContent = '✓ Copied'; } catch { $('share').textContent = '✓ In address bar'; } setTimeout(() => $('share').textContent = '🔗 Link', 1500); }; $('close').onclick = () => $('drawer').close();
 let playing = false;
 $('play').onclick = async () => {
   if (playing) return; playing = true; $('play').disabled = true;
@@ -104,7 +128,7 @@ $('drawer').addEventListener('close', () => history.replaceState(null, '', locat
 addEventListener('hashchange', () => { const s = L.serialFromHash(location.hash); if (s) open(s); });
 let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(render, 120); });
 $('src').innerHTML = `Data: <a href="https://thespacedevs.com/llapi">The Space Devs Launch Library 2</a> — boosters snapshot ${d10(snap.fetched_at)}, flights snapshot ${d10(fsnap.fetched_at)}. Unofficial; not affiliated with SpaceX.`;
-axis(); render(); recordsPanel(); trend(); cmp();
+axis(); render(); recordsPanel(); trend(); years(); spots(); cmp();
 const lw = $('lanewrap'); if (lw.scrollWidth > lw.clientWidth) lw.scrollLeft = lw.scrollWidth; // newest years in view on narrow screens
 const deep = L.serialFromHash(location.hash); if (deep) open(deep);
 document.body.dataset.ready = '1';

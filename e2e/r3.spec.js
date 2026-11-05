@@ -1,0 +1,9 @@
+import { test, expect } from '@playwright/test'; import fs from 'node:fs';
+const F = JSON.parse(fs.readFileSync('src/flights.json', 'utf8')).flights;
+const go = async (p, u = '/') => { await p.goto(u); await p.waitForSelector('body[data-ready="1"]'); };
+test('year totals match raw', async ({ page }) => { await go(page); const c = {}; for (const f of F) c[f.net.slice(0, 4)] = (c[f.net.slice(0, 4)] || 0) + 1; for (const [y, n] of Object.entries(c)) await expect(page.locator(`#yearsvg .tot[data-y="${y}"]`)).toHaveText(String(n)); });
+test('spot table matches raw', async ({ page }) => { await go(page); const o = F.filter(f => f.landing_loc === 'OCISLY' && f.landing_attempt); /* AMOS-6 (2016 pad loss) had OCISLY assigned but no attempt */ await expect(page.locator('#spottable tr[data-w="OCISLY"] td').nth(2)).toHaveText(`${o.filter(f => f.landing_success).length}/${o.length}`); });
+test('URL state restores view', async ({ page }) => { await go(page, '/?status=lost&sort=newest&a=B1058&b=B1049'); await expect(page.locator('#status')).toHaveValue('lost'); await expect(page.locator('#sort')).toHaveValue('newest'); await expect(page.locator('#ctable th').nth(1)).toHaveText('B1058'); });
+test('changing controls updates URL', async ({ page }) => { await go(page); await page.selectOption('#sort', 'first'); expect(page.url()).toContain('sort=first'); await page.selectOption('#cb', 'B1058'); expect(page.url()).toContain('b=B1058'); });
+test('share button gives feedback', async ({ page }) => { await go(page); await page.click('#share'); await expect(page.locator('#share')).toContainText('✓'); });
+test('junk query is harmless', async ({ page }) => { await go(page, '/?status=%3Cscript%3E&a=x&sort=__proto__'); await expect(page.locator('#status')).toHaveValue('all'); await expect(page.locator('#sort')).toHaveValue('flights'); });
