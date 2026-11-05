@@ -1,6 +1,7 @@
-// Regenerate screenshots/ (3 viewports) and screenshots/demo.gif. Needs the server on :4477.
+// Regenerate screenshots/ (3 viewports) and screenshots/demo.gif. Needs the server on PORT (default 4477).
 import { chromium } from '@playwright/test'; import { execSync } from 'node:child_process'; import fs from 'node:fs';
-const U = 'http://127.0.0.1:4477/';
+const PORT = process.env.PORT || '4477';
+const U = `http://127.0.0.1:${PORT}/`;
 const chrome = process.env.PW_CHROME || '/home/box/.cache/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-linux64/chrome-headless-shell';
 const b = await chromium.launch({ executablePath: chrome });
 for (const [w, h] of [[1440, 900], [1920, 1080], [390, 844]]) {

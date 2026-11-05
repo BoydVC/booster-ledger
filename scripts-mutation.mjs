@@ -28,7 +28,19 @@ try {
     if (!orig.includes(a)) { console.log('SKIP (pattern missing):', name); continue; }
     fs.writeFileSync(F, orig.replace(a, b));
     const env = { ...process.env, MUTATION: F === 'server.js' ? '1' : '' };
-    if (F === 'server.js') spawnSync('bash', ['-c', 'fuser -k 4477/tcp >/dev/null 2>&1 || true'], { encoding: 'utf8' });
+    // Only stop a server we own on PORT (default 4477). Never fuser-kill arbitrary listeners.
+    if (F === 'server.js') {
+      const port = env.PORT || process.env.PORT || '4477';
+      // Prefer exact PID file written by this burn; otherwise leave existing servers alone and let
+      // Playwright's webServer (reuseExistingServer=false under MUTATION) bind a free attempt.
+      const pidFile = '.burn/server-' + port + '.pid';
+      if (fs.existsSync(pidFile)) {
+        const pid = fs.readFileSync(pidFile, 'utf8').trim();
+        try { process.kill(Number(pid), 'SIGTERM'); } catch {}
+        try { fs.unlinkSync(pidFile); } catch {}
+        spawnSync('bash', ['-c', `sleep 0.3`], { encoding: 'utf8' });
+      }
+    }
     const r = spawnSync('npx', SUITES[suite], { encoding: 'utf8', env });
     fs.writeFileSync(F, orig); cur = null;
     const dead = r.status !== 0; killed += dead; console.log(dead ? 'killed  ' : 'SURVIVED', name);
