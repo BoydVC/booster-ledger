@@ -72,3 +72,16 @@ body.tv>*:not(#tv){display:none!important}html.tv,body.tv{padding:0;margin:0;ove
 #help{max-width:360px}#help ul{padding-left:18px;line-height:1.8}#help kbd{margin-right:6px}
 #matrixsvg{width:100%;max-width:1000px;background:#0f1520;border-radius:10px;display:block}
 #matrix{margin-top:22px}
+
+/* r38 phone polish */
+.exports{display:contents}
+@media (max-width:700px){
+  .keys{display:none}
+  .lede{margin:4px 0 8px}
+  .controls{gap:6px;margin:10px 0}
+  .controls input,.controls select,.controls button,.controls a#tvlink{padding:6px 8px;font-size:13px}
+  #year{font-size:18px}
+  /* TOC starts closed on phone via app.js matchMedia; keep summary tappable */
+  #tocwrap:not([open]){padding:4px 0}
+  #tocwrap:not([open]) #toc{display:none}
+}

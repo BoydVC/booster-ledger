@@ -32,7 +32,7 @@ Public data only, from [The Space Devs Launch Library 2 API](https://thespacedev
 ## Run (2 minutes)
 ```
 npm i
-npm start                        # http://127.0.0.1:4477
+npm start                        # http://127.0.0.1:4477 (or PORT=4701 npm start)
 npm test                         # unit + data-consistency tests
 npx playwright test              # browser tests: features, DOM numbers vs raw JSON, a11y (axe), security
 npm run refresh                  # re-pull both snapshots (~10 requests; anonymous LL2 allows ~15/hour)
@@ -44,4 +44,4 @@ node shots.mjs                   # refresh screenshots/ + demo.gif (server must 
 `src/ledger.js` holds pure data functions, `src/charts.js` pure SVG builders, `src/app.js` the DOM wiring and `server.js` a static server for `src/` only. `scripts-flights.mjs` derives `flights.json` from the raw API pages, and `validate.mjs` does the cross-checks. Tests live in `test/` (vitest) and `e2e/` (Playwright). See [docs/ADVERSARIAL.md](docs/ADVERSARIAL.md) for the latest review notes.
 
 ## Keys
-`/` search · `j` / `k` next / previous booster · `[` / `]` nudge as-of year · `Space` replay · `Esc` close
+`/` search · `j` / `k` next / previous booster · `[` / `]` nudge as-of year · `Space` replay · `?` help · `Esc` close. On a phone the keyboard hint is hidden and the on-this-page TOC starts collapsed so the lifelines show sooner.
