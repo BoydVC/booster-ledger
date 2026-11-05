@@ -241,3 +241,13 @@ export function filterWithMissions(bs, flights, { q = '', status = 'all' } = {})
   const hit = missionsMatching(flights, q);
   return bs.filter(b => (status === 'all' || b.status === status) && (b.serial.toUpperCase().includes(s) || hit.has(b.serial)));
 }
+export function landingSuccessByYear(flights) {
+  const by = {};
+  for (const f of flights) {
+    if (!f.landing_attempt) continue;
+    const y = +f.net.slice(0, 4);
+    const e = (by[y] ||= { year: y, attempts: 0, success: 0 });
+    e.attempts++; if (f.landing_success) e.success++;
+  }
+  return Object.values(by).sort((a, b) => a.year - b.year).map(e => ({ ...e, rate: e.attempts ? e.success / e.attempts : null }));
+}

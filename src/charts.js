@@ -90,3 +90,17 @@ export function timelineSVG(flights, { w = 640 } = {}) {
   g += `<text x="${pad}" y="72" fill="#8a96a8" font-size="11">${flights.length} flights · blue ASDS · green RTLS · gold expended · red failed landing</text>`;
   return { viewBox: `0 0 ${w} ${h}`, svg: g };
 }
+
+export function rateSVG(series, nowYear, { w = 640 } = {}) {
+  if (!series.length) return null;
+  const short = w < 500;
+  const h = 220, pad = 44, max = 1;
+  const x = i => pad + (w - pad * 2) * (series.length < 2 ? .5 : i / (series.length - 1));
+  const y = v => h - 30 - (h - 60) * v / max;
+  let g = '';
+  for (const v of [0, .25, .5, .75, 1]) g += `<line x1="${pad}" x2="${w - pad}" y1="${y(v)}" y2="${y(v)}" stroke="#1e2838"/><text x="4" y="${y(v) + 4}" fill="#8a96a8" font-size="11">${Math.round(v * 100)}%</text>`;
+  g += `<polyline fill="none" stroke="#5fd38d" stroke-width="3" points="${series.map((p, i) => `${x(i)},${y(p.rate)}`).join(' ')}"/>`;
+  series.forEach((p, i) => g += `<g data-y="${p.year}"><circle cx="${x(i)}" cy="${y(p.rate)}" r="3.5" fill="#5fd38d"><title>${p.year}: ${(p.rate * 100).toFixed(1)}% (${p.success}/${p.attempts})</title></circle><text x="${x(i)}" y="${h - 10}" text-anchor="middle" fill="#8a96a8" font-size="11">${yl(p.year, short)}${ytd(p.year, nowYear)}</text></g>`);
+  g += `<text x="${w - pad}" y="16" text-anchor="end" fill="#5fd38d" font-size="12">landing success rate</text>`;
+  return { viewBox: `0 0 ${w} ${h}`, svg: g };
+}

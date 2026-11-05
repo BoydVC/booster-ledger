@@ -135,8 +135,12 @@ document.addEventListener('keydown', e => {
 });
 $('drawer').addEventListener('close', () => history.replaceState(null, '', location.pathname + location.search));
 addEventListener('hashchange', () => { const s = L.serialFromHash(location.hash); if (s) open(s); });
-let rz, lastCW = CW().w; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { render(); if (CW().w !== lastCW) { lastCW = CW().w; trend(); years(); prog(); cmp(); fleet(); } }, 120); });
+let rz, lastCW = CW().w; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { render(); if (CW().w !== lastCW) { lastCW = CW().w; trend(); years(); prog(); cmp(); fleet(); rate(); } }, 120); });
 $('src').innerHTML = `Data: <a href="https://thespacedevs.com/llapi">The Space Devs Launch Library 2</a> — boosters snapshot ${d10(snap.fetched_at)}, flights snapshot ${d10(fsnap.fetched_at)}. Unofficial; not affiliated with SpaceX.`;
+function rate() {
+  const r = C.rateSVG(L.landingSuccessByYear(FL), NOWY, CW()); if (!r) return;
+  $('ratesvg').setAttribute('viewBox', r.viewBox); $('ratesvg').innerHTML = r.svg;
+}
 function fleet() {
   const series = L.fleetSizeByYear(all, FL, Y0, Y1);
   const r = C.fleetSVG(series, NOWY, CW()); if (!r) return;
@@ -159,7 +163,7 @@ function stepBooster(dir) {
   open(rows[focusIdx].serial);
 }
 
-axis(); render(); recordsPanel(); trend(); years(); spots(); pads(); prog(); cmp(); fleet();
+axis(); render(); recordsPanel(); trend(); years(); spots(); pads(); prog(); cmp(); fleet(); rate();
 const lw = $('lanewrap'); if (lw.scrollWidth > lw.clientWidth) lw.scrollLeft = lw.scrollWidth; // newest years in view on narrow screens
 const deep = L.serialFromHash(location.hash); if (deep) open(deep);
 function tvCard(list, i) {
