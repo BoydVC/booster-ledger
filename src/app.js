@@ -33,7 +33,7 @@ function lanes(bs) {
   for (let y = Y0; y <= Y1 + 1; y++) g += `<line x1="${X(Date.UTC(y, 0))}" y1="0" x2="${X(Date.UTC(y, 0))}" y2="${H}" stroke="#1e2838"/>`;
   rows.forEach((b, i) => {
     const end = Math.min(cutoff, b.status === 'active' ? Date.parse(snap.fetched_at) : b.lastMs), y = 4 + i * 14, w = Math.max(3, X(end) - X(b.firstMs));
-    g += `<g class="lane" data-s="${esc(b.serial)}" tabindex="0"><text x="${X(b.firstMs) - 4}" y="${y + 9}" text-anchor="end">${esc(b.serial)}</text><rect x="${X(b.firstMs)}" y="${y}" width="${w}" height="10" rx="4" fill="${COL[b.status] || '#8a96a8'}" opacity="${.35 + .65 * Math.min(1, b.flights / 40)}"/><text x="${X(b.firstMs) + w + 4}" y="${y + 9}">${b.flights}</text></g>`;
+    g += `<g class="lane" data-s="${esc(b.serial)}" tabindex="0"><title>${esc(b.serial)}: ${b.flights} flights, ${esc(b.status)}</title><text x="${X(b.firstMs) - 4}" y="${y + 9}" text-anchor="end">${esc(b.serial)}</text><rect x="${X(b.firstMs)}" y="${y}" width="${w}" height="10" rx="4" fill="${COL[b.status] || '#8a96a8'}" opacity="${.35 + .65 * Math.min(1, b.flights / 40)}"/><text x="${X(b.firstMs) + w + 4}" y="${y + 9}">${b.flights}</text></g>`;
   });
   const svg = $('lanes'); svg.setAttribute('viewBox', `0 0 ${W} ${Math.max(H, 20)}`); svg.style.height = Math.max(H, 20) * Math.max(svg.clientWidth || W, 720) / W + 'px'; svg.innerHTML = g;
   if (!rows.length) svg.innerHTML = `<text x="20" y="16" fill="#8a96a8">No boosters match.</text>`;

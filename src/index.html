@@ -1,13 +1,13 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Booster Ledger — Falcon reuse, flight by flight</title><link rel="stylesheet" href="style.css"></head>
 <body><header><h1>Booster Ledger</h1><p class="sub">Keys: <kbd>/</kbd> search · <kbd>Space</kbd> replay · <kbd>Esc</kbd> close. Every Falcon first stage with a B10xx serial: how many times it flew, how it ended, how fast it turned around.</p></header>
-<section id="stats" aria-label="fleet stats"></section><div id="fate" aria-label="how boosters ended"></div>
+<section id="stats" aria-label="fleet stats"></section><div id="fate" role="img" aria-label="how boosters ended"></div>
 <section class="controls"><input id="q" placeholder="Search serial, e.g. B1067" aria-label="search"><select id="status" aria-label="status"><option value="all">All statuses</option></select>
 <select id="sort" aria-label="sort"><option value="flights">Most flown</option><option value="first">First flight</option><option value="newest">Newest</option></select>
 <label class="chk"><input type="checkbox" id="fh"> Falcon Heavy only</label>
-<button id="csv" aria-label="download CSV of the boosters shown">⬇ CSV</button>
-<button id="share" aria-label="copy link to this view">🔗 Link</button>
-<button id="play" aria-label="replay">▶ Replay the years</button><span id="year" aria-live="polite"></span></section>
+<button id="csv" aria-label="CSV: download the boosters shown">⬇ CSV</button>
+<button id="share" aria-label="Link: copy a link to this view">🔗 Link</button>
+<button id="play">▶ Replay the years</button><span id="year" aria-live="polite"></span></section>
 <main><section><h2>Lifelines</h2><div id="lanewrap"><svg id="axis" aria-hidden="true"></svg><svg id="lanes" role="group" aria-label="booster lifelines, one bar per booster; press Enter on a bar for details"></svg></div></section>
 <aside><h2>Records</h2><div id="records"></div><h2>Most flown</h2><ol id="top"></ol><h2>Fastest turnaround</h2><ol id="fast"></ol></aside></main>
 <div id="panels"><section id="trend"><h2>Turnaround trend</h2><p class="sub">Median and fastest days between consecutive flights of the same booster, by year of the reflight. * = year to date.</p><svg id="trendsvg" role="img" aria-label="turnaround trend by year"></svg></section>
